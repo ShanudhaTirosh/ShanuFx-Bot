@@ -59,6 +59,20 @@ function isSpotifyUrl(query) {
 }
 
 /**
+ * Rebuilds a Spotify URL from just its type + id, dropping any sharing/
+ * tracking query params (e.g. `?si=...`) that could otherwise trip up the
+ * embed-page scraper or a node's native resolver.
+ *
+ * @param {string} query
+ * @returns {string | null}
+ */
+function toCanonicalSpotifyUrl(query) {
+  const parsed = parseSpotifyUrl(query);
+  if (!parsed) return null;
+  return `https://open.spotify.com/${parsed.type}/${parsed.id}`;
+}
+
+/**
  * Resolves a Spotify URL into an array of plain search query strings
  * (`"Title Artist"`), suitable for feeding into player.search() against
  * whichever Lavalink node is actually connected.
@@ -72,8 +86,13 @@ async function resolveSpotifyToQueries(url) {
 
   if (!parsed) throw new Error('Not a recognizable Spotify URL.');
 
+  // Use a clean canonical URL (no ?si=... or other query params) for the
+  // actual scrape — those params sometimes come from mobile share sheets
+  // and aren't needed to identify the track/album/playlist.
+  const cleanUrl = `https://open.spotify.com/${parsed.type}/${parsed.id}`;
+
   if (parsed.type === 'track') {
-    const preview = await fetchSpotify(() => getPreview(url));
+    const preview = await fetchSpotify(() => getPreview(cleanUrl));
     if (!preview?.title) throw new Error('Could not read track metadata from Spotify.');
     return {
       kind: 'track',
@@ -85,8 +104,8 @@ async function resolveSpotifyToQueries(url) {
   // Album / playlist — getTracks returns up to the first 100 tracks.
   if (parsed.type === 'album' || parsed.type === 'playlist') {
     const [preview, tracks] = await Promise.all([
-      fetchSpotify(() => getPreview(url)).catch(() => null),
-      fetchSpotify(() => getTracks(url)),
+      fetchSpotify(() => getPreview(cleanUrl)).catch(() => null),
+      fetchSpotify(() => getTracks(cleanUrl)),
     ]);
     if (!tracks || tracks.length === 0) {
       throw new Error('Could not read any tracks from that Spotify link.');
@@ -130,4 +149,4 @@ function buildQuery(title, artist) {
   return artist ? `${title} ${artist}` : title;
 }
 
-module.exports = { isSpotifyUrl, parseSpotifyUrl, resolveSpotifyToQueries };
+module.exports = { isSpotifyUrl, parseSpotifyUrl, toCanonicalSpotifyUrl, resolveSpotifyToQueries };

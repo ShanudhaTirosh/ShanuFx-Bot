@@ -17,7 +17,8 @@
  *      each resulting "title artist" string on the node via YouTube Music.
  */
 
-const { isSpotifyUrl, resolveSpotifyToQueries } = require('./spotifyResolve');
+const { isSpotifyUrl, toCanonicalSpotifyUrl, resolveSpotifyToQueries } = require('./spotifyResolve');
+const { normalizeYoutubeUrl } = require('./normalizeYoutubeUrl');
 
 const MAX_FALLBACK_PLAYLIST_TRACKS = 50;
 
@@ -28,6 +29,10 @@ const MAX_FALLBACK_PLAYLIST_TRACKS = 50;
  * @returns {Promise<{ tracks: any[], playlistName: string | null, sourceNote: string | null }>}
  */
 async function resolveQuery(player, query, requester) {
+  // Strips YouTube radio-mix (list=RD...) and tracking (?si=...) params
+  // before it ever reaches Lavalink — harmless no-op for non-YouTube input.
+  query = normalizeYoutubeUrl(query);
+
   if (isSpotifyUrl(query)) {
     return resolveSpotify(player, query, requester);
   }
@@ -37,13 +42,16 @@ async function resolveQuery(player, query, requester) {
 }
 
 async function resolveSpotify(player, query, requester) {
-  // Try the node's native Spotify support first (LavaSrc) — this is what
-  // Shanu's own node should have configured (see docs/MUSIC_SETUP.md), and
-  // gives the best metadata + full playlist support in one request.
+  // Use a clean canonical Spotify URL (drops ?si=... etc.) for every
+  // resolution path below.
+  const canonicalUrl = toCanonicalSpotifyUrl(query) ?? query;
+
+  // Try the node's native Spotify support first (LavaSrc) — gives the
+  // best metadata + full playlist support in one request when available.
   try {
-    const result = await player.search({ query }, requester);
+    const result = await player.search({ query: canonicalUrl }, requester);
     if (result.loadType !== 'error' && result.loadType !== 'empty' && result.tracks.length > 0) {
-      return fromSearchResult(result, query);
+      return fromSearchResult(result, canonicalUrl);
     }
   } catch {
     // Node doesn't support the "spotify" source, or the request otherwise
@@ -54,7 +62,7 @@ async function resolveSpotify(player, query, requester) {
   // (no API key needed), then search each track on the connected node.
   let resolved;
   try {
-    resolved = await resolveSpotifyToQueries(query);
+    resolved = await resolveSpotifyToQueries(canonicalUrl);
   } catch (err) {
     throw new Error(`Couldn't resolve that Spotify link: ${err.message}`);
   }
