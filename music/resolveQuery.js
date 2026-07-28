@@ -134,6 +134,24 @@ function fromSearchResult(result, query) {
     };
   }
 
+  // Check if query is a YouTube playlist/radio URL but was returned as 'track' or 'search'
+  // This happens with YouTube Radio/Mix playlists sometimes
+  const isYouTubePlaylist = /[?&]list=([^&]+)/.test(query);
+  
+  if (isYouTubePlaylist && result.tracks.length > 1) {
+    // Extract playlist ID from URL
+    const playlistMatch = query.match(/[?&]list=([^&]+)/);
+    const playlistId = playlistMatch ? playlistMatch[1] : null;
+    
+    return {
+      tracks: result.tracks,
+      playlistName: playlistId && playlistId.startsWith('RD') 
+        ? 'YouTube Mix' 
+        : result.playlist?.name ?? 'YouTube Playlist',
+      sourceNote: null,
+    };
+  }
+
   // 'track' or 'search' loadType — for a plain search, only queue the
   // top match (matches how every major music bot's /play behaves).
   return { tracks: [result.tracks[0]], playlistName: null, sourceNote: null };

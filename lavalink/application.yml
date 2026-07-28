@@ -39,7 +39,7 @@ lavalink:
       lowPass: true
     bufferDurationMs: 400
     frameBufferDurationMs: 5000
-    youtubePlaylistLoadLimit: 50
+    youtubePlaylistLoadLimit: 100  # Increased from 50 to 100 for larger playlists
     playerUpdateInterval: 5
     youtubeSearchEnabled: true
     soundcloudSearchEnabled: true
