@@ -23,9 +23,10 @@ module.exports = {
   async execute(interaction) {
     const query = interaction.options.getString('query');
 
-    if (!interaction.client.lavalink.useable) {
-      return interaction.reply({ embeds: [err('No music server is currently reachable. Please try again in a moment.')], ephemeral: true });
-    }
+    // Remove the Lavalink check - let it fail naturally if actually offline
+    // if (!interaction.client.lavalink.useable) {
+    //   return interaction.reply({ embeds: [err('No music server is currently reachable. Please try again in a moment.')], ephemeral: true });
+    // }
 
     const voiceCheck = requireVoiceChannel(interaction);
     if (!voiceCheck.ok) {
@@ -73,6 +74,10 @@ module.exports = {
     }
 
     const { tracks, playlistName, sourceNote } = resolved;
+    
+    // Check if music is already playing before adding to queue
+    const wasPlaying = player.playing || player.paused;
+    
     player.queue.add(tracks);
 
     if (!player.playing && !player.paused) {
@@ -83,58 +88,31 @@ module.exports = {
       }
     }
 
-    // Determine platform icon and info
-    const getPlatformInfo = (track) => {
-      const uri = track?.info?.uri || query;
-      if (uri.includes('spotify.com')) return { emoji: '🟢', name: 'Spotify', color: 0x1DB954 };
-      if (uri.includes('youtube.com') || uri.includes('youtu.be')) return { emoji: '🔴', name: 'YouTube', color: 0xFF0000 };
-      if (uri.includes('soundcloud.com')) return { emoji: '🟠', name: 'SoundCloud', color: 0xFF5500 };
-      return { emoji: '🎵', name: 'Music', color: 0x5865F2 };
-    };
-
-    const platform = getPlatformInfo(tracks[0]);
-    const embed = new EmbedBuilder().setColor(platform.color);
-
     if (playlistName) {
-      // Calculate total duration
-      const totalDuration = tracks.reduce((sum, track) => sum + (track.info.duration || 0), 0);
-      const hours = Math.floor(totalDuration / 3600000);
-      const minutes = Math.floor((totalDuration % 3600000) / 60000);
-      const seconds = Math.floor((totalDuration % 60000) / 1000);
-      const durationStr = hours > 0 
-        ? `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-        : `${minutes}:${String(seconds).padStart(2, '0')}`;
-      
-      embed
-        .setAuthor({ name: '📀 Playlist Added', iconURL: interaction.user.displayAvatarURL() })
-        .setTitle(playlistName)
-        .setDescription(`┌ **Platform:** ${platform.emoji} ${platform.name}\n├ **Tracks:** ${tracks.length}\n└ **Duration:** ${durationStr}`)
-        .setThumbnail(tracks[0]?.info?.artworkUrl ?? null)
-        .setFooter({ text: `Requested by ${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL() })
-        .setTimestamp();
+      // Playlist queued embed
+      const playlistEmbed = new EmbedBuilder()
+        .setColor(0x57F287) // Green color
+        .setDescription(`📀 **Playlist Queued**\n\nAdded **${tracks.length}** track(s) from **${playlistName}** to the queue.`);
+
+      if (sourceNote) {
+        playlistEmbed.setFooter({ text: sourceNote });
+      }
+
+      return interaction.editReply({ embeds: [playlistEmbed] });
     } else {
-      const track = tracks[0];
-      const queuePos = player.queue.tracks.indexOf(track);
-      const positionText = player.queue.current === track ? '🎵 Now Playing' : `📝 Position ${queuePos + 1} in queue`;
-      
-      embed
-        .setAuthor({ name: '🎵 Added to Queue', iconURL: interaction.user.displayAvatarURL() })
-        .setTitle(track.info.title)
-        .setURL(track.info.uri || 'https://discord.com')
-        .setDescription(`**${track.info.author || 'Unknown Artist'}**`)
-        .addFields(
-          { name: '⏱️ Duration', value: track.info.isStream ? '🔴 LIVE' : formatDuration(track.info.duration), inline: true },
-          { name: '📊 Position', value: positionText, inline: true },
-          { name: '🎧 Platform', value: `${platform.emoji} ${platform.name}`, inline: true },
-        )
-        .setThumbnail(track.info.artworkUrl ?? null)
-        .setFooter({ text: `Requested by ${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL() })
-        .setTimestamp();
+      // Single track - only show if adding to queue while music is playing
+      if (wasPlaying) {
+        const track = tracks[0];
+        const queueEmbed = new EmbedBuilder()
+          .setColor(0x57F287)
+          .setDescription(`📀 **Track Queued**\n\nAdded **${track.info.title}** by **${track.info.author || 'Unknown'}** to the queue.`);
+        
+        return interaction.editReply({ embeds: [queueEmbed] });
+      } else {
+        // Starting fresh - just acknowledge, trackStart will show "Now Playing"
+        return interaction.editReply({ embeds: [new EmbedBuilder().setColor(0x57F287).setDescription('⏳ Working on it...')] });
+      }
     }
-
-    if (sourceNote) embed.addFields({ name: '📝 Note', value: sourceNote, inline: false });
-
-    return interaction.editReply({ embeds: [embed] });
   },
 };
 
