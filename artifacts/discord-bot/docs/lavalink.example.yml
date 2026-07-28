@@ -1,0 +1,94 @@
+# Example Lavalink v4 application.yml for lavalink.shanufx.dev (or any node)
+# Copy this next to your Lavalink.jar as application.yml and fill in the
+# blanks. See docs/MUSIC_SETUP.md for the full walkthrough.
+
+server:
+  port: 2333
+  address: 0.0.0.0
+
+lavalink:
+  server:
+    password: "youshallnotpass" # change this, put the same value in LAVALINK_PASSWORD in the bot's .env
+    sources:
+      # Built-in YouTube source is deprecated/broken — must stay off.
+      # YouTube playback comes from the youtube-source plugin below.
+      youtube: false
+      soundcloud: true
+      bandcamp: true
+      twitch: true
+      vimeo: true
+      http: true
+      local: false
+    filters:
+      volume: true
+      equalizer: true
+      karaoke: true
+      timescale: true
+      tremolo: true
+      vibrato: true
+      distortion: true
+      rotation: true
+      channelMix: true
+      lowPass: true
+    bufferDurationMs: 400
+    frameBufferDurationMs: 5000
+    youtubePlaylistLoadLimit: 6
+    playerUpdateInterval: 5
+    youtubeSearchEnabled: true
+    soundcloudSearchEnabled: true
+
+  # youtube-source is REQUIRED for YouTube playback (see `youtube: false`
+  # above). LavaSrc is optional and only adds native Spotify metadata — see
+  # docs/MUSIC_SETUP.md. Remove the LavaSrc line if you're happy relying on
+  # the bot's built-in keyless Spotify fallback instead.
+  plugins:
+    - dependency: "dev.lavalink.youtube:youtube-plugin:1.13.5"
+      repository: "https://maven.lavalink.dev/releases"
+      snapshot: false
+    - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.8.0"
+      repository: "https://maven.lavalink.dev/releases"
+      snapshot: false
+
+plugins:
+  # Rotates through several YouTube "clients" for reliability — free, no
+  # Google account needed. If you still hit frequent "Sign in to confirm
+  # you're not a bot" errors, add OAuth (see lavalink/application.yml's
+  # comments for the exact steps — still free, one-time device-code login).
+  youtube:
+    enabled: true
+    allowSearch: true
+    allowDirectVideoIds: true
+    allowDirectPlaylistIds: true
+    clients:
+      - MUSIC
+      - ANDROID_VR
+      - WEB
+      - WEBEMBEDDED
+      - TVHTML5EMBEDDED
+
+  lavasrc:
+    providers:
+      - "ytsearch:\"%ISRC%\""
+      - "ytsearch:%QUERY%"
+    sources:
+      # Leave false until you fill in real credentials below — the bot's
+      # keyless fallback (music/spotifyResolve.js) handles Spotify links
+      # fine without this; flip to true once you add a free Spotify
+      # Developer app for better metadata/playlist paging.
+      spotify: false
+      applemusic: false
+      deezer: false
+    spotify:
+      clientId: "YOUR_FREE_SPOTIFY_CLIENT_ID"
+      clientSecret: "YOUR_FREE_SPOTIFY_CLIENT_SECRET"
+      countryCode: "US"
+      playlistLoadLimit: 6 # pages of 100 tracks
+
+metrics:
+  prometheus:
+    enabled: false
+
+logging:
+  level:
+    root: INFO
+    lavalink: INFO

@@ -1,0 +1,247 @@
+/* ============================================================================
+   Design tokens — "control room" theme
+   A moderation dashboard's real subject is the audit trail: who did what,
+   to whom, when. The signature element (the case-history strip) is styled
+   like a terminal log because that's literally what it is.
+   ========================================================================== */
+:root {
+  /* Color */
+  --bg:          #12141c;
+  --surface:     #1a1d29;
+  --surface-2:   #222639;
+  --surface-3:   #2a2f45;
+  --border:      #2e3348;
+  --text:        #e8eaf6;
+  --text-muted:  #8b90ac;
+  --text-faint:  #5c6182;
+
+  --primary:      #6c7bff;
+  --primary-dim:  #4a55b8;
+  --primary-glow: rgba(108, 123, 255, 0.18);
+
+  --success: #3ed598;
+  --warn:    #f5a623;
+  --danger:  #f2496b;
+
+  /* Type */
+  --font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+  --font-body:    'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+
+  --radius: 10px;
+  --radius-sm: 6px;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(108, 123, 255, 0.08), transparent 40%),
+    radial-gradient(circle at 85% 100%, rgba(62, 213, 152, 0.05), transparent 40%);
+  background-attachment: fixed;
+}
+
+a { color: inherit; }
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+code, .mono { font-family: var(--font-mono); }
+
+::selection { background: var(--primary-glow); }
+
+/* Focus visibility — keyboard users always get a ring */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.7rem 1.3rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+.btn:active { transform: translateY(1px); }
+
+.btn-primary {
+  background: var(--primary);
+  color: #0c0e16;
+}
+.btn-primary:hover { box-shadow: 0 0 0 4px var(--primary-glow); }
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text);
+}
+.btn-ghost:hover { background: var(--surface-2); }
+
+.btn-danger { background: var(--danger); color: #1a0810; }
+.btn-danger:hover { box-shadow: 0 0 0 4px rgba(242, 73, 107, 0.18); }
+
+.btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Cards / panels ──────────────────────────────────────────────────────── */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+.panel-title {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ── Forms ───────────────────────────────────────────────────────────────── */
+label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+input[type="text"], input[type="number"], select, textarea {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.75rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+}
+textarea { resize: vertical; min-height: 4.5rem; }
+
+.field { margin-bottom: 1.1rem; }
+.field-hint { font-size: 0.78rem; color: var(--text-faint); margin-top: 0.3rem; }
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch-track {
+  position: absolute; inset: 0; background: var(--surface-3);
+  border-radius: 999px; transition: background 0.15s ease; cursor: pointer;
+}
+.switch-track::before {
+  content: ''; position: absolute; height: 16px; width: 16px; left: 3px; top: 3px;
+  background: var(--text-muted); border-radius: 50%; transition: transform 0.15s ease, background 0.15s ease;
+}
+.switch input:checked + .switch-track { background: var(--primary-dim); }
+.switch input:checked + .switch-track::before { transform: translateX(18px); background: var(--primary); }
+
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.6rem 0; border-bottom: 1px solid var(--border);
+}
+.toggle-row:last-child { border-bottom: none; }
+.toggle-row-label { font-weight: 500; font-size: 0.92rem; }
+.toggle-row-desc { font-size: 0.78rem; color: var(--text-faint); margin-top: 0.15rem; }
+
+/* ── Badges / pills ──────────────────────────────────────────────────────── */
+.pill {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;
+  padding: 0.22rem 0.55rem; border-radius: 999px;
+}
+.pill-success { background: rgba(62, 213, 152, 0.14); color: var(--success); }
+.pill-warn    { background: rgba(245, 166, 35, 0.14); color: var(--warn); }
+.pill-danger  { background: rgba(242, 73, 107, 0.14); color: var(--danger); }
+.pill-muted   { background: var(--surface-3); color: var(--text-muted); }
+
+/* ── Signature element: the audit console ───────────────────────────────── */
+.console {
+  background: #0d0f16;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  overflow: hidden;
+}
+.console-line {
+  display: grid;
+  grid-template-columns: 90px 70px 1fr auto;
+  gap: 0.9rem;
+  align-items: baseline;
+  padding: 0.55rem 1rem;
+  border-left: 3px solid var(--surface-3);
+  border-bottom: 1px solid var(--border);
+}
+.console-line:last-child { border-bottom: none; }
+.console-line.action-ban, .console-line.action-lock { border-left-color: var(--danger); }
+.console-line.action-kick, .console-line.action-mute, .console-line.action-slowmode { border-left-color: var(--warn); }
+.console-line.action-warn { border-left-color: var(--text-muted); }
+.console-line.action-purge { border-left-color: var(--primary); }
+.console-line.action-unban, .console-line.action-unmute, .console-line.action-unlock { border-left-color: var(--success); }
+.console-time { color: var(--text-faint); font-size: 0.76rem; }
+.console-case { color: var(--primary); }
+.console-empty { padding: 2rem 1rem; text-align: center; color: var(--text-faint); }
+
+/* ── Loading / empty states ──────────────────────────────────────────────── */
+.spinner {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid var(--surface-3); border-top-color: var(--primary);
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty-state {
+  text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);
+}
+
+/* ── Toasts ──────────────────────────────────────────────────────────────── */
+#toast-region {
+  position: fixed; bottom: 1.25rem; right: 1.25rem;
+  display: flex; flex-direction: column; gap: 0.6rem; z-index: 100;
+}
+.toast {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 0.7rem 1rem;
+  font-size: 0.85rem; box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  animation: toast-in 0.18s ease;
+}
+.toast.success { border-color: rgba(62, 213, 152, 0.4); }
+.toast.error { border-color: rgba(242, 73, 107, 0.4); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }

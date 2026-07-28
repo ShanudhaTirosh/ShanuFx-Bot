@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Servers — Control Room</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 0.6rem; font-family: var(--font-display); font-weight: 700; }
+  .brand-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--success); box-shadow: 0 0 10px var(--success); }
+  .user-chip { display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; color: var(--text-muted); }
+  .user-chip img { width: 26px; height: 26px; border-radius: 50%; }
+
+  main { max-width: 900px; margin: 0 auto; padding: 3rem 1.5rem; }
+  main h1 { margin-bottom: 0.3rem; }
+  main > p { color: var(--text-muted); margin-top: 0; margin-bottom: 2rem; }
+
+  .guild-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+  .guild-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 1.2rem; text-decoration: none; color: var(--text);
+    display: flex; flex-direction: column; gap: 0.8rem;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .guild-card.active:hover { border-color: var(--primary); transform: translateY(-2px); }
+  .guild-card.inactive { opacity: 0.7; }
+  .guild-icon {
+    width: 46px; height: 46px; border-radius: 12px; background: var(--surface-3);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; color: var(--text-muted);
+    overflow: hidden;
+  }
+  .guild-icon img { width: 100%; height: 100%; object-fit: cover; }
+  .guild-name { font-weight: 600; font-size: 0.95rem; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="brand-dot"></span> Control Room</div>
+  <div class="user-chip" id="user-chip">Loading…</div>
+</div>
+
+<main>
+  <h1>Your servers</h1>
+  <p>Servers where you have <b>Manage Server</b> permission. Pick one to configure, or add the bot to a new one.</p>
+  <div id="guild-grid" class="guild-grid"></div>
+</main>
+
+<script src="/app.js"></script>
+<script>
+(async () => {
+  try {
+    const me = await api('/me');
+
+    const chip = document.getElementById('user-chip');
+    chip.innerHTML = `
+      ${me.avatar ? `<img src="${escapeHtml(me.avatar)}" alt="">` : ''}
+      <span>${escapeHtml(me.username)}</span>
+      <a href="/auth/logout" class="btn btn-ghost btn-sm" style="margin-left: 0.6rem;">Log out</a>
+    `;
+
+    const grid = document.getElementById('guild-grid');
+    grid.innerHTML = '';
+
+    if (me.guilds.length === 0) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;">
+        You don't manage any servers Discord knows about. If this looks wrong, log out and back in.
+      </div>`;
+      return;
+    }
+
+    for (const g of me.guilds) {
+      const card = document.createElement(g.hasBot ? 'a' : 'div');
+      card.className = `guild-card ${g.hasBot ? 'active' : 'inactive'}`;
+      if (g.hasBot) card.href = `/guild.html?id=${g.id}`;
+
+      card.innerHTML = `
+        <div class="guild-icon">${g.icon ? `<img src="${escapeHtml(g.icon)}" alt="">` : escapeHtml(g.name.slice(0, 1))}</div>
+        <div class="guild-name">${escapeHtml(g.name)}</div>
+        ${g.hasBot
+          ? '<span class="pill pill-success">Bot active</span>'
+          : `<a href="/invite" class="btn btn-primary btn-sm" style="align-self: flex-start;">Add bot</a>`}
+      `;
+      grid.appendChild(card);
+    }
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+})();
+</script>
+
+</body>
+</html>

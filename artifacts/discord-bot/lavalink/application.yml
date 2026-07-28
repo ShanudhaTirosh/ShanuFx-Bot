@@ -1,0 +1,135 @@
+# Lavalink v4 configuration for the `lavalink` service in docker-compose.yml.
+#
+# ${VAR} placeholders below are resolved by Spring Boot (which Lavalink is
+# built on) directly against the container's environment variables — and
+# since the `lavalink` service uses `env_file: .env` (same as the bot/
+# dashboard services), every value here comes straight from your one .env
+# file. You should never need to hand-edit this file for normal setup.
+#
+# LAVALINK_PASSWORD is required (already in .env.example).
+# SPOTIFY_CLIENT_ID / SPOTIFY_CLIENT_SECRET are optional — see
+# docs/MUSIC_SETUP.md. Leave them blank and the LavaSrc Spotify source just
+# stays inactive; the bot's built-in keyless Spotify fallback (music/
+# spotifyResolve.js) covers Spotify links regardless.
+
+server:
+  port: 2333
+  address: 0.0.0.0 # fine to bind all interfaces inside the container — only published to 127.0.0.1 on the host, see docker-compose.yml
+
+lavalink:
+  server:
+    password: "${LAVALINK_PASSWORD}"
+    sources:
+      # Lavalink's BUILT-IN youtube source is deprecated and effectively
+      # broken (YouTube's anti-bot signature checks reject it) — it must
+      # stay OFF. YouTube playback comes from the youtube-source PLUGIN
+      # configured below instead (`plugins.youtube`), which is actively
+      # maintained and rotates through multiple YouTube "clients" to stay
+      # working. Do not flip this back to true.
+      youtube: false
+      soundcloud: true
+      bandcamp: true
+      twitch: true
+      vimeo: true
+      http: true
+      local: false
+    filters:
+      volume: true
+      equalizer: true
+      karaoke: true
+      timescale: true
+      tremolo: true
+      vibrato: true
+      distortion: true
+      rotation: true
+      channelMix: true
+      lowPass: true
+    bufferDurationMs: 400
+    frameBufferDurationMs: 5000
+    youtubePlaylistLoadLimit: 6
+    playerUpdateInterval: 5
+    youtubeSearchEnabled: true
+    soundcloudSearchEnabled: true
+
+  # Plugins:
+  #  - youtube-source: REQUIRED for any YouTube playback at all — see
+  #    `sources.youtube: false` above and `plugins.youtube` below.
+  #    https://github.com/lavalink-devs/youtube-source
+  #  - LavaSrc — only needed for native Spotify resolution on this node.
+  #    Safe to leave in place even without Spotify creds set; it just
+  #    won't do anything useful for Spotify until SPOTIFY_CLIENT_ID/SECRET
+  #    are set (the bot's keyless fallback in music/spotifyResolve.js
+  #    covers Spotify regardless — see docs/MUSIC_SETUP.md).
+  plugins:
+    - dependency: "dev.lavalink.youtube:youtube-plugin:1.13.5"
+      repository: "https://maven.lavalink.dev/releases"
+      snapshot: false
+    - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.8.0"
+      repository: "https://maven.lavalink.dev/releases"
+      snapshot: false
+
+plugins:
+  # youtube-source plugin config. Rotates through several YouTube "clients"
+  # so that if one gets rate-limited/blocked, playback still works via the
+  # others — this is the standard free (no Google account/API key needed)
+  # setup. If you start hitting frequent "Sign in to confirm you're not a
+  # bot" errors despite this, the next step up in reliability is OAuth
+  # (see the commented block below) — still free, just requires a one-time
+  # device-code login from any Google account.
+  youtube:
+    enabled: true
+    allowSearch: true
+    allowDirectVideoIds: true
+    allowDirectPlaylistIds: true
+    clients:
+      - MUSIC          # music.youtube.com — best for /play search results
+      - ANDROID_VR
+      - WEB
+      - WEBEMBEDDED
+      - TVHTML5EMBEDDED
+    # ── Optional: OAuth (still free, no cost/approval) ────────────────────
+    # Fixes most "Sign in to confirm you're not a bot" errors long-term.
+    # 1. Set enabled: true and start Lavalink — the console prints a
+    #    google.com/device code to visit once from any browser.
+    # 2. After approving, Lavalink prints a refreshToken — copy it below
+    #    and set skipInitialization: true so it doesn't ask again on
+    #    every restart.
+    # oauth:
+    #   enabled: false
+    #   refreshToken: ""
+    #   skipInitialization: false
+
+  lavasrc:
+    providers:
+      - "ytsearch:\"%ISRC%\""
+      - "ytsearch:%QUERY%"
+    sources:
+      # OFF by default: no Spotify Developer app credentials are set below,
+      # so leaving this on would just fail on every Spotify link before
+      # falling back anyway (harmless, but noisy logs + a wasted round-
+      # trip). The bot's keyless fallback (music/spotifyResolve.js —
+      # scrapes Spotify's public embed page, then matches on YouTube
+      # Music) fully handles Spotify links without any credentials. If you
+      # later add a free Spotify Developer app's Client ID/Secret below,
+      # flip this to true for better metadata + full playlist paging.
+      spotify: false
+      applemusic: false
+      deezer: false
+    spotify:
+      clientId: "${SPOTIFY_CLIENT_ID:}"
+      clientSecret: "${SPOTIFY_CLIENT_SECRET:}"
+      countryCode: "US"
+      playlistLoadLimit: 6
+
+metrics:
+  prometheus:
+    enabled: false
+
+logging:
+  level:
+    root: INFO
+    lavalink: INFO
+  logback:
+    rollingpolicy:
+      max-file-size: 50MB
+      max-history: 5

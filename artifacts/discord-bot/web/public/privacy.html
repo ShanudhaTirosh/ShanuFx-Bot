@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — Control Room</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  main { max-width: 720px; margin: 0 auto; padding: 3.5rem 1.5rem 5rem; line-height: 1.7; }
+  main h1 { font-size: 1.8rem; margin-bottom: 0.4rem; }
+  main h2 { font-size: 1.15rem; margin-top: 2.2rem; margin-bottom: 0.6rem; }
+  main p, main li { color: var(--text-muted); font-size: 0.94rem; }
+  main ul { padding-left: 1.3rem; }
+  .updated { font-size: 0.82rem; color: var(--text-faint); margin-bottom: 2rem; }
+  .draft-notice {
+    background: rgba(245, 166, 35, 0.1); border: 1px solid rgba(245, 166, 35, 0.3);
+    border-radius: var(--radius); padding: 1rem 1.2rem; margin-bottom: 2.5rem;
+    font-size: 0.86rem; color: var(--warn);
+  }
+  a.back { font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<main>
+  <a href="/" class="back">← Back</a>
+
+  <div class="draft-notice">
+    ⚠️ <strong>Template — not legal advice.</strong> This is a starting point covering the
+    basics a Discord bot needs to disclose. Replace every <code>[bracketed]</code> placeholder,
+    confirm accuracy against what your bot/dashboard actually do, and have it reviewed by a
+    lawyer (or at minimum checked against your local data-protection law — GDPR, CCPA, etc.)
+    before you rely on it, especially before submitting it as part of Discord's bot
+    verification process.
+  </div>
+
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: [DATE] — Effective for: [BOT NAME] and its web dashboard</p>
+
+  <h2>1. Who we are</h2>
+  <p>[BOT NAME] ("the Bot", "we", "us") is a Discord application operated by [YOUR NAME / COMPANY NAME], contactable at [CONTACT EMAIL]. This policy covers the Bot and its web dashboard at [DASHBOARD URL].</p>
+
+  <h2>2. What we collect</h2>
+  <p>To operate, the Bot and dashboard store:</p>
+  <ul>
+    <li><strong>Server (guild) configuration</strong> — channel IDs, role IDs, and messages you set up for welcome/goodbye/logging/anti-spam/auto-escalation features.</li>
+    <li><strong>Moderation records</strong> — warnings, bans, kicks, mutes, and similar actions taken through the Bot, including the Discord user IDs and usernames of the member and moderator involved, the reason given, and a timestamp. This exists to give your server a persistent audit trail.</li>
+    <li><strong>Message content, only when a moderator acts on it</strong> — e.g. the content of a message flagged by anti-spam, or shown in edit/delete logs if you've enabled that feature. We do not log ordinary message content that isn't relevant to moderation.</li>
+    <li><strong>Dashboard login sessions</strong> — if you use the web dashboard, we store your Discord user ID, username, avatar URL, and a Discord OAuth2 access/refresh token (used only to check which servers you can manage), plus a session identifier stored in your browser as a cookie.</li>
+  </ul>
+  <p>We do not collect payment information, precise location, or data unrelated to running the Bot's features.</p>
+
+  <h2>3. How we use it</h2>
+  <p>Solely to provide the Bot's and dashboard's features: applying your configured settings, maintaining moderation history, and authenticating dashboard logins. We do not sell data, and we do not use it for advertising.</p>
+
+  <h2>4. Where it's stored</h2>
+  <p>Data is stored in a database operated by us at [HOSTING PROVIDER / LOCATION]. [Add detail here if you use a third-party host, e.g. "on servers provided by Railway/Render/a VPS provider located in [region]".]</p>
+
+  <h2>5. How long we keep it</h2>
+  <p>Guild configuration and dashboard sessions are deleted when the Bot is removed from a server (sessions also expire automatically after 7 days of inactivity). Moderation history (warnings, case log) is retained after the Bot is removed so it's available if the Bot is re-added later — server admins can request deletion of this history by contacting [CONTACT EMAIL].</p>
+
+  <h2>6. Third parties</h2>
+  <p>We share data with Discord only as required for the Bot/dashboard to function (this is inherent to any Discord bot). We do not share data with any other third party. [Update this section if you add analytics, error tracking like Sentry, or other third-party services.]</p>
+
+  <h2>7. Your rights</h2>
+  <p>You can ask us to delete data associated with your server or your dashboard account by contacting [CONTACT EMAIL]. Removing the Bot from your server also stops any new data collection for that server.</p>
+
+  <h2>8. Changes to this policy</h2>
+  <p>We'll update the "Last updated" date above when this policy changes. Material changes will be announced [e.g. "in the Bot's support server" / "via the dashboard"].</p>
+
+  <h2>9. Contact</h2>
+  <p>Questions about this policy: [CONTACT EMAIL]</p>
+</main>
+</body>
+</html>

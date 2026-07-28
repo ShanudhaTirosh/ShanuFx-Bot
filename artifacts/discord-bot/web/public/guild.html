@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guild Control — Control Room</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  .layout { display: grid; grid-template-columns: 230px 1fr; min-height: 100vh; }
+  @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } }
+
+  .sidebar {
+    border-right: 1px solid var(--border); padding: 1.2rem 0.8rem;
+    display: flex; flex-direction: column; gap: 0.2rem;
+    position: sticky; top: 0; height: 100vh;
+  }
+  .sidebar-header { padding: 0.6rem 0.6rem 1.2rem; }
+  .sidebar-guild-name { font-family: var(--font-display); font-weight: 700; font-size: 1rem; }
+  .sidebar-back { font-size: 0.78rem; color: var(--text-faint); text-decoration: none; }
+
+  .nav-btn {
+    display: flex; align-items: center; gap: 0.6rem;
+    background: none; border: none; color: var(--text-muted); text-align: left;
+    font-family: var(--font-body); font-size: 0.88rem; font-weight: 500;
+    padding: 0.6rem 0.7rem; border-radius: var(--radius-sm); cursor: pointer;
+  }
+  .nav-btn:hover { background: var(--surface); color: var(--text); }
+  .nav-btn.active { background: var(--surface-2); color: var(--text); }
+  .nav-btn.active { box-shadow: inset 3px 0 0 var(--primary); }
+
+  .content { padding: 2rem 2.2rem 4rem; max-width: 800px; }
+  .content h1 { font-size: 1.5rem; margin-bottom: 0.3rem; }
+  .content > .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.8rem; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 560px) { .row-2 { grid-template-columns: 1fr; } }
+
+  .save-bar {
+    display: flex; align-items: center; gap: 0.8rem; margin-top: 1.5rem;
+  }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.9rem; margin-bottom: 1.8rem; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.1rem; }
+  .stat-value { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; }
+  .stat-label { font-size: 0.76rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; margin-top: 0.2rem; }
+
+  .warn-search { display: flex; gap: 0.6rem; margin-bottom: 1.2rem; }
+  .warn-item {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 0.9rem 1rem; margin-bottom: 0.6rem; display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;
+  }
+  .warn-meta { font-size: 0.78rem; color: var(--text-faint); margin-top: 0.3rem; font-family: var(--font-mono); }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <a href="/dashboard.html" class="sidebar-back">← All servers</a>
+      <div class="sidebar-guild-name" id="sidebar-guild-name" style="margin-top: 0.4rem;">Loading…</div>
+    </div>
+    <button class="nav-btn active" data-section="overview">📊 Overview</button>
+    <button class="nav-btn" data-section="welcome">👋 Welcome &amp; Goodbye</button>
+    <button class="nav-btn" data-section="autorole">🎭 Auto-role</button>
+    <button class="nav-btn" data-section="logs">📋 Logs</button>
+    <button class="nav-btn" data-section="antispam">🛡️ Anti-Spam</button>
+    <button class="nav-btn" data-section="prefix">⌨️ Prefix Commands</button>
+    <button class="nav-btn" data-section="escalation">⚙️ Auto-Escalation</button>
+    <button class="nav-btn" data-section="warnings">⚠️ Warnings</button>
+    <button class="nav-btn" data-section="cases">🗂️ Case History</button>
+  </aside>
+
+  <main class="content">
+
+    <!-- ── Overview ─────────────────────────────────────────────────────── -->
+    <section class="section active" id="section-overview">
+      <h1>Overview</h1>
+      <p class="subtitle">Recent activity across this server.</p>
+      <div class="stat-grid" id="overview-stats"></div>
+      <div class="panel">
+        <div class="panel-title">Recent case activity</div>
+        <div class="console" id="overview-console"><div class="console-empty">Loading…</div></div>
+      </div>
+    </section>
+
+    <!-- ── Welcome & Goodbye ────────────────────────────────────────────── -->
+    <section class="section" id="section-welcome">
+      <h1>Welcome &amp; Goodbye</h1>
+      <p class="subtitle">Messages posted when a member joins or leaves. Use <code>{user}</code>, <code>{username}</code>, <code>{server}</code>.</p>
+
+      <div class="panel" style="margin-bottom: 1rem;">
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-row-label">Welcome message</div>
+            <div class="toggle-row-desc">Post a message when someone joins</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="welcome-enabled"><span class="switch-track"></span></label>
+        </div>
+        <div class="field" style="margin-top: 1rem;">
+          <label>Channel ID</label>
+          <input type="text" id="welcome-channel" placeholder="e.g. 123456789012345678">
+          <div class="field-hint">Right-click a channel in Discord → Copy Channel ID (enable Developer Mode first).</div>
+        </div>
+        <div class="field">
+          <label>Message</label>
+          <textarea id="welcome-message"></textarea>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-row-label">Goodbye message</div>
+            <div class="toggle-row-desc">Post a message when someone leaves</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="bye-enabled"><span class="switch-track"></span></label>
+        </div>
+        <div class="field" style="margin-top: 1rem;">
+          <label>Channel ID</label>
+          <input type="text" id="bye-channel" placeholder="e.g. 123456789012345678">
+        </div>
+        <div class="field">
+          <label>Message</label>
+          <textarea id="bye-message"></textarea>
+        </div>
+      </div>
+
+      <div class="save-bar"><button class="btn btn-primary" onclick="saveConfig()">Save changes</button></div>
+    </section>
+
+    <!-- ── Auto-role ────────────────────────────────────────────────────── -->
+    <section class="section" id="section-autorole">
+      <h1>Auto-role</h1>
+      <p class="subtitle">Automatically assign a role to new members.</p>
+      <div class="panel">
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-row-label">Auto-role</div>
+            <div class="toggle-row-desc">Assign a role as soon as someone joins</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="autorole-enabled"><span class="switch-track"></span></label>
+        </div>
+        <div class="field" style="margin-top: 1rem;">
+          <label>Role ID</label>
+          <input type="text" id="autorole-role" placeholder="e.g. 123456789012345678">
+          <div class="field-hint">Right-click a role in Server Settings → Roles → Copy Role ID.</div>
+        </div>
+      </div>
+      <div class="save-bar"><button class="btn btn-primary" onclick="saveConfig()">Save changes</button></div>
+    </section>
+
+    <!-- ── Logs ─────────────────────────────────────────────────────────── -->
+    <section class="section" id="section-logs">
+      <h1>Logs</h1>
+      <p class="subtitle">Where moderation actions and (optionally) message edits/deletes get posted.</p>
+      <div class="panel">
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-row-label">Moderation logs</div>
+            <div class="toggle-row-desc">Ban / kick / mute / warn / lock / slowmode events</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="logs-enabled"><span class="switch-track"></span></label>
+        </div>
+        <div class="field" style="margin-top: 1rem;">
+          <label>Channel ID</label>
+          <input type="text" id="logs-channel" placeholder="e.g. 123456789012345678">
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-row-label">Message edit/delete logs</div>
+            <div class="toggle-row-desc">Can be noisy — uses the same channel above</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="message-logs-enabled"><span class="switch-track"></span></label>
+        </div>
+      </div>
+      <div class="save-bar"><button class="btn btn-primary" onclick="saveConfig()">Save changes</button></div>
+    </section>
+
+    <!-- ── Anti-Spam ────────────────────────────────────────────────────── -->
+    <section class="section" id="section-antispam">
+      <h1>Anti-Spam</h1>
+      <p class="subtitle">Flood protection: too many messages in too little time triggers an action.</p>
+      <div class="panel">
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-row-label">Anti-spam</div>
+            <div class="toggle-row-desc">Detect message flooding and duplicate/invite-link spam</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="antispam-enabled"><span class="switch-track"></span></label>
+        </div>
+        <div class="row-2" style="margin-top: 1rem;">
+          <div class="field">
+            <label>Message limit</label>
+            <input type="number" id="antispam-limit" min="2" max="30">
+            <div class="field-hint">Messages allowed within the window</div>
+          </div>
+          <div class="field">
+            <label>Window (seconds)</label>
+            <input type="number" id="antispam-window" min="1" max="60">
+          </div>
+        </div>
+        <div class="field">
+          <label>Action</label>
+          <select id="antispam-action">
+            <option value="warn">Warn</option>
+            <option value="mute">Mute (timeout)</option>
+            <option value="kick">Kick</option>
+          </select>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-row-label">Block invite links</div>
+            <div class="toggle-row-desc">Auto-delete discord.gg links from non-moderators</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="antispam-invites"><span class="switch-track"></span></label>
+        </div>
+      </div>
+      <div class="save-bar"><button class="btn btn-primary" onclick="saveConfig()">Save changes</button></div>
+    </section>
+
+    <!-- ── Prefix Commands ──────────────────────────────────────────────── -->
+    <section class="section" id="section-prefix">
+      <h1>Prefix Commands</h1>
+      <p class="subtitle">Every command also works as a text command (e.g. <code>.ban @user spamming</code>) alongside slash commands.</p>
+      <div class="panel">
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-row-label">Prefix commands</div>
+            <div class="toggle-row-desc">Turn text-prefix commands on or off. Slash commands (/command) always work regardless.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="prefix-enabled"><span class="switch-track"></span></label>
+        </div>
+        <div class="field" style="margin-top: 1rem;">
+          <label>Prefix</label>
+          <input type="text" id="prefix-value" maxlength="5" placeholder=".">
+          <div class="field-hint">1-5 characters, no spaces — e.g. <code>.</code> <code>!</code> <code>&gt;</code></div>
+        </div>
+      </div>
+      <div class="save-bar"><button class="btn btn-primary" onclick="saveConfig()">Save changes</button></div>
+    </section>
+
+    <!-- ── Auto-Escalation ──────────────────────────────────────────────── -->
+    <section class="section" id="section-escalation">
+      <h1>Warning Auto-Escalation</h1>
+      <p class="subtitle">Automatically mute, kick, or ban members once they hit a warning count. Leave a field at 0 to disable that tier.</p>
+      <div class="panel">
+        <div class="row-2">
+          <div class="field">
+            <label>Auto-mute at</label>
+            <input type="number" id="esc-mute-at" min="0" max="50">
+          </div>
+          <div class="field">
+            <label>Mute duration (minutes)</label>
+            <input type="number" id="esc-mute-duration" min="1" max="40320">
+          </div>
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label>Auto-kick at</label>
+            <input type="number" id="esc-kick-at" min="0" max="50">
+          </div>
+          <div class="field">
+            <label>Auto-ban at</label>
+            <input type="number" id="esc-ban-at" min="0" max="50">
+          </div>
+        </div>
+        <div class="field-hint">Tiers should increase (mute &lt; kick &lt; ban) so escalation actually escalates.</div>
+      </div>
+      <div class="save-bar"><button class="btn btn-primary" onclick="saveConfig()">Save changes</button></div>
+    </section>
+
+    <!-- ── Warnings ─────────────────────────────────────────────────────── -->
+    <section class="section" id="section-warnings">
+      <h1>Warnings</h1>
+      <p class="subtitle">Look up a member's active warnings by their user ID.</p>
+      <div class="warn-search">
+        <input type="text" id="warn-search-input" placeholder="Discord user ID">
+        <button class="btn btn-primary" onclick="searchWarnings()">Search</button>
+      </div>
+      <div id="warn-results"></div>
+    </section>
+
+    <!-- ── Case History ─────────────────────────────────────────────────── -->
+    <section class="section" id="section-cases">
+      <h1>Case History</h1>
+      <p class="subtitle">Every ban, kick, mute, warn, lock, and slowmode change — independent of your log channel.</p>
+      <div class="console" id="cases-console"><div class="console-empty">Loading…</div></div>
+    </section>
+
+  </main>
+</div>
+
+<script src="/app.js"></script>
+<script>
+const guildId = new URLSearchParams(location.search).get('id');
+let currentConfig = null;
+
+if (!guildId) {
+  document.body.innerHTML = '<div class="empty-state">No server selected. <a href="/dashboard.html">Go back</a>.</div>';
+  throw new Error('no guild id');
+}
+
+// ── Nav ──────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`section-${btn.dataset.section}`).classList.add('active');
+  });
+});
+
+// ── Load ─────────────────────────────────────────────────────────────────────
+async function loadAll() {
+  try {
+    const [config, cases] = await Promise.all([
+      api(`/guilds/${guildId}/config`),
+      api(`/guilds/${guildId}/cases?limit=15`),
+    ]);
+    currentConfig = config;
+    populateForm(config);
+    renderConsole('overview-console', cases.slice(0, 6));
+    renderConsole('cases-console', cases);
+    renderStats(cases);
+  } catch (err) {
+    toast(err.message, 'error');
+    if (err.message.includes('not in this server')) {
+      document.querySelector('main').innerHTML = `<div class="empty-state">The bot isn't in this server yet. <a href="/invite">Add it</a>.</div>`;
+    }
+  }
+}
+
+function populateForm(c) {
+  document.getElementById('sidebar-guild-name').textContent = `Server ${guildId.slice(0, 6)}…`;
+
+  document.getElementById('welcome-enabled').checked = c.welcome.enabled;
+  document.getElementById('welcome-channel').value = c.welcome.channelId ?? '';
+  document.getElementById('welcome-message').value = c.welcome.message;
+
+  document.getElementById('bye-enabled').checked = c.bye.enabled;
+  document.getElementById('bye-channel').value = c.bye.channelId ?? '';
+  document.getElementById('bye-message').value = c.bye.message;
+
+  document.getElementById('autorole-enabled').checked = c.autorole.enabled;
+  document.getElementById('autorole-role').value = c.autorole.roleId ?? '';
+
+  document.getElementById('logs-enabled').checked = c.logs.enabled;
+  document.getElementById('logs-channel').value = c.logs.channelId ?? '';
+  document.getElementById('message-logs-enabled').checked = c.logs.messageLogsEnabled;
+
+  document.getElementById('antispam-enabled').checked = c.antispam.enabled;
+  document.getElementById('antispam-limit').value = c.antispam.limit;
+  document.getElementById('antispam-window').value = c.antispam.window;
+  document.getElementById('antispam-action').value = c.antispam.action;
+  document.getElementById('antispam-invites').checked = c.antispam.blockInvites;
+
+  document.getElementById('prefix-enabled').checked = c.prefix?.enabled ?? true;
+  document.getElementById('prefix-value').value = c.prefix?.value ?? '.';
+
+  document.getElementById('esc-mute-at').value = c.warnThresholds.muteAt ?? 0;
+  document.getElementById('esc-mute-duration').value = c.warnThresholds.muteDuration;
+  document.getElementById('esc-kick-at').value = c.warnThresholds.kickAt ?? 0;
+  document.getElementById('esc-ban-at').value = c.warnThresholds.banAt ?? 0;
+}
+
+function readForm() {
+  return {
+    welcome: {
+      enabled: document.getElementById('welcome-enabled').checked,
+      channelId: document.getElementById('welcome-channel').value.trim() || null,
+      message: document.getElementById('welcome-message').value,
+    },
+    bye: {
+      enabled: document.getElementById('bye-enabled').checked,
+      channelId: document.getElementById('bye-channel').value.trim() || null,
+      message: document.getElementById('bye-message').value,
+    },
+    autorole: {
+      enabled: document.getElementById('autorole-enabled').checked,
+      roleId: document.getElementById('autorole-role').value.trim() || null,
+    },
+    logs: {
+      enabled: document.getElementById('logs-enabled').checked,
+      channelId: document.getElementById('logs-channel').value.trim() || null,
+      messageLogsEnabled: document.getElementById('message-logs-enabled').checked,
+    },
+    antispam: {
+      enabled: document.getElementById('antispam-enabled').checked,
+      limit: Number(document.getElementById('antispam-limit').value),
+      window: Number(document.getElementById('antispam-window').value),
+      action: document.getElementById('antispam-action').value,
+      blockInvites: document.getElementById('antispam-invites').checked,
+    },
+    prefix: {
+      enabled: document.getElementById('prefix-enabled').checked,
+      value: document.getElementById('prefix-value').value.trim() || '.',
+    },
+    warnThresholds: {
+      muteAt: Number(document.getElementById('esc-mute-at').value) || null,
+      muteDuration: Number(document.getElementById('esc-mute-duration').value) || 30,
+      kickAt: Number(document.getElementById('esc-kick-at').value) || null,
+      banAt: Number(document.getElementById('esc-ban-at').value) || null,
+    },
+  };
+}
+
+async function saveConfig() {
+  try {
+    const body = readForm();
+    currentConfig = await api(`/guilds/${guildId}/config`, { method: 'PUT', body: JSON.stringify(body) });
+    toast('Saved.');
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+// ── Console rendering (shared signature component) ───────────────────────────
+function renderConsole(elId, cases) {
+  const el = document.getElementById(elId);
+  if (!cases || cases.length === 0) {
+    el.innerHTML = '<div class="console-empty">No case activity yet.</div>';
+    return;
+  }
+  el.innerHTML = cases.map(c => `
+    <div class="console-line action-${escapeHtml(c.action)}">
+      <span class="console-time">${timeAgo(c.date)}</span>
+      <span class="console-case">#${c.id}</span>
+      <span>${escapeHtml(c.action)} <b>${escapeHtml(c.targetTag)}</b>${c.reason ? ` — ${escapeHtml(c.reason)}` : ''}</span>
+      <span class="pill pill-muted">${escapeHtml(c.moderatorTag)}</span>
+    </div>
+  `).join('');
+}
+
+function renderStats(cases) {
+  const counts = cases.reduce((acc, c) => ((acc[c.action] = (acc[c.action] ?? 0) + 1), acc), {});
+  const stats = [
+    { label: 'Total (shown)', value: cases.length },
+    { label: 'Bans', value: counts.ban ?? 0 },
+    { label: 'Kicks', value: counts.kick ?? 0 },
+    { label: 'Warnings', value: counts.warn ?? 0 },
+  ];
+  document.getElementById('overview-stats').innerHTML = stats.map(s => `
+    <div class="stat"><div class="stat-value">${s.value}</div><div class="stat-label">${s.label}</div></div>
+  `).join('');
+}
+
+// ── Warnings search ────────────────────────────────────────────────────────
+async function searchWarnings() {
+  const userId = document.getElementById('warn-search-input').value.trim();
+  const results = document.getElementById('warn-results');
+  if (!/^\d{17,20}$/.test(userId)) {
+    toast('Enter a valid 17-20 digit user ID.', 'error');
+    return;
+  }
+  results.innerHTML = '<div class="empty-state">Loading…</div>';
+  try {
+    const warnings = await api(`/guilds/${guildId}/warnings?userId=${userId}`);
+    if (warnings.length === 0) {
+      results.innerHTML = '<div class="empty-state">No active warnings for this user.</div>';
+      return;
+    }
+    results.innerHTML = `
+      <div class="save-bar" style="margin: 0 0 1rem;">
+        <button class="btn btn-danger btn-sm" onclick="clearAllWarnings('${userId}')">Clear all (${warnings.length})</button>
+      </div>
+    ` + warnings.map(w => `
+      <div class="warn-item">
+        <div>
+          <div>${escapeHtml(w.reason)}</div>
+          <div class="warn-meta">Case #${w.id} · by ${escapeHtml(w.moderatorTag)} · ${timeAgo(w.date)}</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="removeWarning(${w.id}, '${userId}')">Remove</button>
+      </div>
+    `).join('');
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+async function removeWarning(caseId, userId) {
+  try {
+    await api(`/guilds/${guildId}/warnings/${caseId}`, { method: 'DELETE' });
+    toast(`Removed warning #${caseId}.`);
+    searchWarnings();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+async function clearAllWarnings(userId) {
+  try {
+    await api(`/guilds/${guildId}/warnings/user/${userId}`, { method: 'DELETE' });
+    toast('All warnings cleared.');
+    searchWarnings();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+document.getElementById('warn-search-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') searchWarnings();
+});
+
+loadAll();
+</script>
+
+</body>
+</html>
