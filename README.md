@@ -36,12 +36,15 @@ https://discord.com/api/oauth2/authorize?client_id=1506844827554287706&permissio
 
 | Document | Purpose |
 |----------|---------|
-| **[GET_BOT_TOKEN.md](GET_BOT_TOKEN.md)** | ⭐ **START HERE** - How to get your token |
-| **[FINAL_SUMMARY.md](FINAL_SUMMARY.md)** | ✅ Everything that's done |
-| **[COMPLETE_SETUP.md](COMPLETE_SETUP.md)** | 📖 Complete setup instructions |
-| **[QUICK_START.md](QUICK_START.md)** | ⚡ Fast 5-minute setup |
-| **[SETUP_GUIDE.md](SETUP_GUIDE.md)** | 📚 Detailed guide |
-| **[UPDATES_AND_FIXES.md](UPDATES_AND_FIXES.md)** | 🔧 What changed |
+| **[docs/GET_BOT_TOKEN.md](docs/GET_BOT_TOKEN.md)** | ⭐ **START HERE** - How to get your token |
+| **[docs/SUPPORTED_URLS.md](docs/SUPPORTED_URLS.md)** | 🎵 All supported music sources & URL formats |
+| **[docs/FINAL_SUMMARY.md](docs/FINAL_SUMMARY.md)** | ✅ Everything that's done |
+| **[docs/COMPLETE_SETUP.md](docs/COMPLETE_SETUP.md)** | 📖 Complete setup instructions |
+| **[docs/QUICK_START.md](docs/QUICK_START.md)** | ⚡ Fast 5-minute setup |
+| **[docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md)** | 📚 Detailed guide |
+| **[docs/UPDATES_AND_FIXES.md](docs/UPDATES_AND_FIXES.md)** | 🔧 What changed |
+| **[ALL_DONE.md](ALL_DONE.md)** | 🎯 Complete summary (root) |
+| **[README_FIRST.txt](README_FIRST.txt)** | 📋 Quick checklist (root) |
 
 ---
 

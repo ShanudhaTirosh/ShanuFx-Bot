@@ -35,7 +35,7 @@ WHAT YOU NEED:
 5. Go to "OAuth2" → Add redirect:
    http://localhost:3000/auth/callback
 
-📖 Detailed instructions: GET_BOT_TOKEN.md
+📖 Detailed instructions: docs/GET_BOT_TOKEN.md
 
 =====================================
   STEP 2: ADD TOKEN TO .ENV
@@ -192,31 +192,34 @@ Commands not showing:
 =====================================
 
 ⭐ START HERE:
-   GET_BOT_TOKEN.md
+   docs/GET_BOT_TOKEN.md
 
 📺 SUPPORTED URLs:
-   SUPPORTED_URLS.md (NEW!)
+   docs/SUPPORTED_URLS.md (NEW!)
    - All supported music sources
    - YouTube radio/mix explained
    - URL format examples
 
 ✅ COMPLETE SUMMARY:
-   FINAL_SUMMARY.md
+   docs/FINAL_SUMMARY.md
 
 📖 FULL SETUP:
-   COMPLETE_SETUP.md
+   docs/COMPLETE_SETUP.md
 
 ⚡ QUICK START:
-   QUICK_START.md
+   docs/QUICK_START.md
 
 📚 DETAILED GUIDE:
-   SETUP_GUIDE.md
+   docs/SETUP_GUIDE.md
 
 🔧 CHANGES:
-   UPDATES_AND_FIXES.md
+   docs/UPDATES_AND_FIXES.md
 
 📋 FULL README:
    README.md
+
+📁 THIS FILE:
+   ALL_DONE.md (in root)
 
 =====================================
   QUICK REFERENCE
