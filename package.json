@@ -1,19 +1,33 @@
 {
-  "name": "workspace",
-  "version": "0.0.0",
-  "license": "MIT",
+  "name": "discord-management-bot",
+  "version": "1.0.0",
+  "description": "Production-ready Discord server management bot built with Discord.js v14",
+  "main": "index.js",
   "scripts": {
-    "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
-    "build": "pnpm run typecheck && pnpm -r --if-present run build",
-    "typecheck:libs": "tsc --build",
-    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
+    "start": "node shard.js",
+    "start:single": "node index.js",
+    "dev": "node --watch index.js",
+    "deploy:guild": "node deploy-commands.js guild",
+    "deploy:global": "node deploy-commands.js global",
+    "dashboard": "node web/server.js",
+    "dashboard:dev": "node --watch web/server.js",
+    "smoke-test": "node scripts/smoke-test.js"
   },
-  "private": true,
+  "engines": {
+    "node": ">=22.5.0"
+  },
   "dependencies": {
-    "@replit/connectors-sdk": "^0.4.1"
+    "@discordjs/rest": "^2.0.0",
+    "cookie-parser": "^1.4.6",
+    "discord-api-types": "^0.38.0",
+    "discord.js": "^14.15.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0",
+    "lavalink-client": "^2.10.3",
+    "spotify-url-info": "^3.3.1"
   },
-  "devDependencies": {
-    "prettier": "^3.9.6",
-    "typescript": "~5.9.3"
-  }
+  "keywords": ["discord", "bot", "moderation", "discord.js"],
+  "license": "MIT"
 }
