@@ -1,25 +1,18 @@
 /**
  * music/nodes.js
  *
- * Builds the list of Lavalink nodes the bot connects to. Node order is
- * priority order for humans reading this file, but lavalink-client itself
- * doesn't "prefer" node[0] forever — when a player is created with no
- * explicit node, it picks the least-loaded *connected* node (see
- * music/lavalinkManager.js `createPlayer` calls), so if the primary node
- * is down, new players transparently land on a fallback node instead.
- * Existing players on a node that drops get moved with player.moveNode()
- * (also wired up in lavalinkManager.js) instead of the music just dying.
+ * Builds the list of Lavalink nodes the bot connects to. lavalink-client
+ * picks the least-loaded *connected* node when creating a new player, so
+ * if the primary is down, new requests transparently land on a fallback.
+ * Existing players on a dying node get moved with player.moveNode()
+ * (wired up in lavalinkManager.js) instead of music just stopping.
  *
  * ── Primary node ─────────────────────────────────────────────────────────
- * Configure via env vars — see .env.example. If LAVALINK_HOST isn't set,
- * the primary node is skipped entirely and the bot runs on public fallback
- * nodes only.
+ * Configure via env vars. If LAVALINK_HOST isn't set, skipped entirely.
  *
  * ── Public fallback nodes ─────────────────────────────────────────────────
- * These are free, publicly shared Lavalink v4 nodes. They rotate/die more
- * often than a node you control — they're a safety net, not a permanent
- * substitute for your own node.
- * Set LAVALINK_ENABLE_PUBLIC_FALLBACK=false to disable these entirely.
+ * Free, publicly shared Lavalink v4 nodes. Set
+ * LAVALINK_ENABLE_PUBLIC_FALLBACK=false to disable.
  */
 
 function bool(value, defaultValue) {
@@ -62,46 +55,30 @@ function buildNodes() {
   }
 
   // ── Public fallback nodes ────────────────────────────────────────────────
-  // Sources: https://lavalink.darrennathanael.com/ and community lists
-  // All support YouTube (ytmsearch/ytsearch), SoundCloud, and HTTP streams.
-  // Spotify works via the bot's own keyless fallback on any of these nodes.
+  // All support YouTube search (ytmsearch/ytsearch) and SoundCloud.
+  // Spotify works via the bot's built-in keyless fallback on any of these.
+  // Source: https://lavalink.darrennathanael.com and community lists
   if (bool(process.env.LAVALINK_ENABLE_PUBLIC_FALLBACK, true)) {
     nodes.push(
+      // Ajie's node — one of the most reliable free Lavalink v4 nodes
       {
-        id: 'public-lavalink.darrennathanael.com',
-        host: 'lavalink.darrennathanael.com',
-        port: 443,
-        authorization: 'LL2A5RDPBM5UveCp3DOtg2gRZ51jR9M04m4lWWVBxkgJt1Hg3S',
-        secure: true,
-        retryAmount: 3,
-        retryDelay: 10_000,
-      },
-      {
-        id: 'public-lava-v4.ajieblogs.eu.org',
+        id: 'public-ajie',
         host: 'lava-v4.ajieblogs.eu.org',
         port: 443,
         authorization: 'https://dsc.gg/ajidevserver',
         secure: true,
-        retryAmount: 3,
-        retryDelay: 10_000,
+        retryAmount: 5,
+        retryDelay: 8_000,
       },
+      // Serenetia — another well-known free v4 node
       {
-        id: 'public-lavalink.heavencloud.in',
-        host: 'lavalink.heavencloud.in',
-        port: 443,
-        authorization: 'heavencloud',
-        secure: true,
-        retryAmount: 3,
-        retryDelay: 10_000,
-      },
-      {
-        id: 'public-serenetia-v4',
+        id: 'public-serenetia',
         host: 'lavalinkv4.serenetia.com',
         port: 80,
         authorization: 'https://seretia.link/discord',
         secure: false,
-        retryAmount: 3,
-        retryDelay: 10_000,
+        retryAmount: 5,
+        retryDelay: 8_000,
       },
     );
   }

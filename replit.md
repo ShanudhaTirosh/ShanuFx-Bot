@@ -1,15 +1,19 @@
-# [Project name]
+# Discord Management Bot (Shanu_Fx)
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Discord bot with music (YouTube, Spotify, SoundCloud), moderation, anti-spam, welcome/bye messages, and a web dashboard.
 
 ## Run & Operate
 
+- **"Discord Bot" workflow** — starts `node index.js` in `artifacts/discord-bot/`
 - `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
 - `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+
+## Bot Commands (35 total)
+
+**Music**: `/play`, `/skip`, `/stop`, `/pause`, `/resume`, `/queue`, `/nowplaying`, `/volume`, `/loop`, `/shuffle`, `/remove`, `/clear`, `/seek`, `/leave`, `/247`
+**Moderation**: `/ban`, `/unban`, `/kick`, `/mute`, `/warn`, `/warnings`, `/warnsettings`, `/purge`, `/lock`, `/unlock`, `/slowmode`, `/banlist`
+**Setup**: `/setprefix`, `/setwelcome`, `/setbye`, `/setlogs`, `/setautorole`
+**Info**: `/help`, `/serverinfo`, `/antispam`
 
 ## Stack
 
