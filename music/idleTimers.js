@@ -40,6 +40,25 @@ function scheduleIdleDisconnect(player, delayMs, reasonText) {
     if (current.playing && !current.paused) return; // something started playing again
 
     console.log(`[Music] Auto-leaving guild ${guildId} (${reasonText}, idle timeout reached)`);
+    
+    // Send disconnect message
+    const channel = current.client?.channels?.cache?.get(current.textChannelId);
+    if (channel?.isTextBased?.()) {
+      const { EmbedBuilder } = require('discord.js');
+      const minutes = Math.floor(delayMs / 60000);
+      
+      await channel.send({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(0xED4245)
+            .setAuthor({ name: '👋 Leaving Voice Channel', iconURL: current.client.user.displayAvatarURL() })
+            .setDescription(`**No more tracks to play**\n\n┌ ⏱️ Idle for **${minutes} minute(s)**\n├ 🎵 Queue is empty\n├ 🔄 Use \`/247\` to enable 24/7 mode\n└ 👋 See you next time!`)
+            .setFooter({ text: 'Use /play to start playing music again!' })
+            .setTimestamp(),
+        ],
+      }).catch(() => {});
+    }
+    
     await current.destroy().catch(() => {});
   }, delayMs);
 

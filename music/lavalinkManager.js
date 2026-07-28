@@ -91,19 +91,30 @@ function createLavalinkManager(client) {
     const channel = client.channels.cache.get(player.textChannelId);
     if (!channel?.isTextBased()) return;
 
+    // Determine platform and color
+    const getPlatformInfo = (uri) => {
+      if (!uri) return { emoji: '🎵', name: 'Music', color: 0x5865F2 };
+      if (uri.includes('spotify.com')) return { emoji: '🟢', name: 'Spotify', color: 0x1DB954 };
+      if (uri.includes('youtube.com') || uri.includes('youtu.be')) return { emoji: '🔴', name: 'YouTube', color: 0xFF0000 };
+      if (uri.includes('soundcloud.com')) return { emoji: '🟠', name: 'SoundCloud', color: 0xFF5500 };
+      return { emoji: '🎵', name: 'Music', color: 0x5865F2 };
+    };
+
+    const platform = getPlatformInfo(track.info.uri);
+    const duration = track.info.isStream ? '🔴 LIVE' : formatDuration(track.info.duration);
+    const requester = track.requester?.tag ?? track.requester?.username ?? 'Unknown';
+
     channel.send({
       embeds: [
         new EmbedBuilder()
-          .setColor(0x1DB954)
-          .setAuthor({ name: 'Now Playing' })
+          .setColor(platform.color)
+          .setAuthor({ name: '🎶 Now Playing', iconURL: track.requester?.displayAvatarURL?.() })
           .setTitle(track.info.title)
           .setURL(/^https?:\/\//.test(track.info.uri ?? '') ? track.info.uri : null)
+          .setDescription(`**${track.info.author || 'Unknown Artist'}**\n\n┌ **Platform:** ${platform.emoji} ${platform.name}\n├ **Duration:** ${duration}\n└ **Requested by:** ${requester}`)
           .setThumbnail(track.info.artworkUrl ?? null)
-          .addFields(
-            { name: 'Author', value: track.info.author || 'Unknown', inline: true },
-            { name: 'Duration', value: track.info.isStream ? 'LIVE' : formatDuration(track.info.duration), inline: true },
-            { name: 'Requested by', value: track.requester?.tag ?? track.requester?.username ?? 'Unknown', inline: true },
-          ),
+          .setFooter({ text: `Queue: ${player.queue.tracks.length} track(s) remaining`, iconURL: client.user.displayAvatarURL() })
+          .setTimestamp(),
       ],
     }).catch(() => {});
   });
@@ -116,8 +127,10 @@ function createLavalinkManager(client) {
       channel.send({
         embeds: [
           new EmbedBuilder()
-            .setColor(0x5865F2)
-            .setDescription('📭 Queue finished — I\'ll leave the voice channel in a couple minutes if nothing new is queued.'),
+            .setColor(0xFEE75C)
+            .setAuthor({ name: '📭 Queue Finished', iconURL: client.user.displayAvatarURL() })
+            .setDescription('**All tracks have been played!**\n\n┌ ⏱️ I\'ll leave in **2 minutes** if nothing is added\n├ 🎵 Use `/play` to add more tracks\n└ 🔄 Use `/247` to enable 24/7 mode')
+            .setTimestamp(),
         ],
       }).catch(() => {});
     }

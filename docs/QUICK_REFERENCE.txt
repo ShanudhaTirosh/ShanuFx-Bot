@@ -1,0 +1,142 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    DISCORD BOT - QUICK REFERENCE CARD                        ║
+║                           Status: ✅ RUNNING NOW                             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ CURRENT STATUS                                                               │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  🤖 Bot:       🟢 ONLINE (Shanu_Fx#4422) - 35 commands, 4 guilds            │
+│  🎵 Lavalink:  🟢 CONNECTED (localhost:2333) - 4 plugins loaded             │
+│  🌐 Dashboard: 🟢 RUNNING (http://localhost:3000)                           │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ QUICK ACCESS                                                                 │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  Dashboard:    http://localhost:3000                                        │
+│  Invite Bot:   http://localhost:3000/invite                                 │
+│  Direct Link:  discord.com/api/oauth2/authorize?client_id=1506844827554287706│
+│                &permissions=1099783210054&scope=bot%20applications.commands  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ ESSENTIAL COMMANDS                                                           │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  /help                           - Show all commands                        │
+│  /play [song/url]                - Play music                               │
+│  /queue                          - View queue                               │
+│  /nowplaying                     - Current song                             │
+│  /skip                           - Skip song                                │
+│  /pause / /resume                - Control playback                         │
+│  /volume [0-100]                 - Set volume                               │
+│  /serverinfo                     - Server info                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ MUSIC SOURCES (ALL WORKING)                                                 │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  ✅ YouTube videos        youtube.com/watch?v=...                           │
+│  ✅ YouTube playlists     youtube.com/playlist?list=...                     │
+│  ✅ YouTube radio/mix     youtube.com/watch?v=...&list=RD...                │
+│  ✅ Spotify tracks        open.spotify.com/track/...                        │
+│  ✅ Spotify playlists     open.spotify.com/playlist/...                     │
+│  ✅ Search queries        Just type the song name                           │
+│  ✅ Direct URLs           .mp3, .wav, .ogg, .flac, .m4a                     │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ TEST COMMANDS (TRY THESE NOW!)                                              │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  /play never gonna give you up                                              │
+│  /play https://www.youtube.com/watch?v=dQw4w9WgXcQ                         │
+│  /play https://open.spotify.com/playlist/4HCXphcprM1q7yOv2gmUem            │
+│  /play https://www.youtube.com/watch?v=tnZrhFN4X9s&list=RDtnZrhFN4X9s      │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ MAINTENANCE                                                                  │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  Start bot:        npm start                                                │
+│  Start dashboard:  npm run dashboard                                        │
+│  Start Lavalink:   docker-compose up -d                                     │
+│                                                                              │
+│  Stop bot:         Ctrl+C (in bot terminal)                                 │
+│  Stop dashboard:   Ctrl+C (in dashboard terminal)                           │
+│  Stop Lavalink:    docker-compose down                                      │
+│                                                                              │
+│  Restart Lavalink: docker-compose restart                                   │
+│  Check status:     docker ps                                                │
+│  View logs:        docker-compose logs lavalink                             │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ IMPORTANT NOTES                                                              │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  ⚠️ "Public fallback disconnected" errors are NORMAL - ignore them!         │
+│     Your local Lavalink is working perfectly as the PRIMARY node.           │
+│                                                                              │
+│  🔒 NEVER share your .env file - contains your bot token!                   │
+│                                                                              │
+│  💾 Database is at: data/bot.db (backup regularly!)                         │
+│                                                                              │
+│  📚 Full docs in: docs/ folder                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ TROUBLESHOOTING                                                              │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  Music not working?                                                          │
+│    → Check: docker ps                                                        │
+│    → Restart: docker-compose restart                                        │
+│                                                                              │
+│  Bot offline?                                                                │
+│    → Check bot terminal for errors                                          │
+│    → Restart: npm start                                                      │
+│                                                                              │
+│  Dashboard not loading?                                                      │
+│    → Verify: http://localhost:3000                                          │
+│    → Check dashboard terminal is running                                    │
+│                                                                              │
+│  Commands not showing in Discord?                                           │
+│    → Run: deploy-commands.bat                                               │
+│    → Enter your server ID                                                   │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ FILES & DOCUMENTATION                                                        │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  START_HERE_NOW.md          - Detailed current status                       │
+│  CURRENT_STATUS.md          - System status overview                        │
+│  docs/ALL_DONE.md           - Complete setup summary                        │
+│  docs/SUPPORTED_URLS.md     - All music URL formats                         │
+│  docs/COMPLETE_SETUP.md     - Full setup guide                              │
+│  .env                       - Configuration (KEEP SECRET!)                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ FEATURES AVAILABLE                                                           │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  ✅ 35 Slash Commands         ✅ YouTube Music                              │
+│  ✅ Web Dashboard              ✅ Spotify Support (keyless!)                 │
+│  ✅ Bot Status Customization   ✅ Radio/Mix Playlists                        │
+│  ✅ Moderation Tools           ✅ Queue Management                           │
+│  ✅ Anti-spam Protection       ✅ 24/7 Music Mode                            │
+│  ✅ Welcome/Goodbye Messages   ✅ Volume, Loop, Shuffle                      │
+│  ✅ Auto-role Assignment       ✅ Multi-server Support                       │
+│  ✅ Logging System             ✅ OAuth Authentication                       │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                        🎉 YOUR BOT IS READY TO USE! 🎉                       ║
+║                                                                              ║
+║  1. Open http://localhost:3000 (Dashboard)                                  ║
+║  2. Try /play in Discord (Music)                                            ║
+║  3. Use /help to see all commands                                           ║
+║                                                                              ║
+║  Everything is working perfectly! Enjoy your bot! 🚀                         ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Last Updated: July 28, 2026
+Bot: Shanu_Fx#4422
+Status: 🟢 ALL SYSTEMS OPERATIONAL

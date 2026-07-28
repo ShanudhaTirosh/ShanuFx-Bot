@@ -48,24 +48,55 @@ function buildPageEmbed(player, page, totalPages) {
   const items = player.queue.tracks.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
   const lines = items.map((t, i) => {
     const pos = page * PAGE_SIZE + i + 1;
-    return `**${pos}.** [${t.info.title}](${t.info.uri}) — ${t.info.isStream ? 'LIVE' : formatDuration(t.info.duration)}`;
+    const duration = t.info.isStream ? '🔴 LIVE' : formatDuration(t.info.duration);
+    return `\`${String(pos).padStart(2, '0')}.\` [**${t.info.title}**](${t.info.uri})\n    └ ${t.info.author || 'Unknown'} • ${duration}`;
   });
 
-  const embed = new EmbedBuilder().setColor(0x5865F2).setTitle('🎶 Music Queue');
+  // Platform detection for color
+  const currentTrack = player.queue.current;
+  let color = 0x5865F2;
+  if (currentTrack?.info?.uri) {
+    if (currentTrack.info.uri.includes('spotify.com')) color = 0x1DB954;
+    else if (currentTrack.info.uri.includes('youtube.com')) color = 0xFF0000;
+    else if (currentTrack.info.uri.includes('soundcloud.com')) color = 0xFF5500;
+  }
 
-  if (player.queue.current) {
+  const embed = new EmbedBuilder()
+    .setColor(color)
+    .setAuthor({ name: '📜 Music Queue', iconURL: player.client.user.displayAvatarURL() });
+
+  if (currentTrack) {
+    const platform = currentTrack.info.uri?.includes('spotify.com') ? '🟢 Spotify' :
+                     currentTrack.info.uri?.includes('youtube.com') ? '🔴 YouTube' :
+                     currentTrack.info.uri?.includes('soundcloud.com') ? '🟠 SoundCloud' : '🎵 Music';
+    const duration = currentTrack.info.isStream ? '🔴 LIVE' : formatDuration(currentTrack.info.duration);
+    
     embed.addFields({
-      name: 'Now Playing',
-      value: `[${player.queue.current.info.title}](${player.queue.current.info.uri}) — ${player.queue.current.info.isStream ? 'LIVE' : formatDuration(player.queue.current.info.duration)}`,
+      name: '▶️ Now Playing',
+      value: `[**${currentTrack.info.title}**](${currentTrack.info.uri})\n┌ ${currentTrack.info.author || 'Unknown Artist'}\n├ ${platform}\n└ ${duration}`,
+      inline: false,
     });
   }
 
-  embed.setDescription(lines.length ? lines.join('\n') : '*Nothing else queued.*');
+  if (lines.length > 0) {
+    embed.addFields({
+      name: '📝 Up Next',
+      value: lines.join('\n\n'),
+      inline: false,
+    });
+  } else {
+    embed.setDescription('*No more tracks in queue*');
+  }
 
   const totalMs = player.queue.utils.totalDuration();
+  const loopIcon = player.repeatMode === 'queue' ? '🔁' : player.repeatMode === 'track' ? '🔂' : '';
+  const loopText = player.repeatMode !== 'off' ? ` • ${loopIcon} Loop: ${player.repeatMode}` : '';
+  
   embed.setFooter({
-    text: `${player.queue.tracks.length} track(s) queued — total ${formatDuration(totalMs)} — page ${page + 1} of ${totalPages}${player.repeatMode !== 'off' ? ` — 🔁 ${player.repeatMode}` : ''}`,
-  });
+    text: `${player.queue.tracks.length} track(s) • ${formatDuration(totalMs)} total${loopText} • Page ${page + 1}/${totalPages}`,
+    iconURL: player.client.user.displayAvatarURL(),
+  })
+  .setTimestamp();
 
   return embed;
 }

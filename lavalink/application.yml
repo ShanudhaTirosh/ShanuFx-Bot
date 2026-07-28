@@ -96,20 +96,20 @@ plugins:
     
     sources:
       # Spotify support (works with or without credentials via fallback)
-      spotify: false  # Set to true if you add SPOTIFY_CLIENT_ID/SECRET below
-      applemusic: true
-      deezer: true
+      spotify: true  # Enabled - works without credentials via YouTube Music fallback
+      applemusic: false  # Disabled - requires token
+      deezer: false  # Disabled - requires master key
       yandexmusic: false  # Requires Russian account
       flowerytts: false
       youtube: true
     
-    # Spotify configuration (optional - bot has keyless fallback)
+    # Spotify configuration (works without credentials via YouTube Music fallback)
     spotify:
       clientId: "${SPOTIFY_CLIENT_ID:}"
       clientSecret: "${SPOTIFY_CLIENT_SECRET:}"
       countryCode: "US"
-      playlistLoadLimit: 50
-      albumLoadLimit: 50
+      playlistLoadLimit: 100  # Increased from 50 to 100
+      albumLoadLimit: 100  # Increased from 50 to 100
     
     # Apple Music configuration (optional)
     applemusic:

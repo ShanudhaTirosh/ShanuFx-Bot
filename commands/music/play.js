@@ -83,25 +83,56 @@ module.exports = {
       }
     }
 
-    const embed = new EmbedBuilder().setColor(0x1DB954);
+    // Determine platform icon and info
+    const getPlatformInfo = (track) => {
+      const uri = track?.info?.uri || query;
+      if (uri.includes('spotify.com')) return { emoji: '🟢', name: 'Spotify', color: 0x1DB954 };
+      if (uri.includes('youtube.com') || uri.includes('youtu.be')) return { emoji: '🔴', name: 'YouTube', color: 0xFF0000 };
+      if (uri.includes('soundcloud.com')) return { emoji: '🟠', name: 'SoundCloud', color: 0xFF5500 };
+      return { emoji: '🎵', name: 'Music', color: 0x5865F2 };
+    };
+
+    const platform = getPlatformInfo(tracks[0]);
+    const embed = new EmbedBuilder().setColor(platform.color);
 
     if (playlistName) {
+      // Calculate total duration
+      const totalDuration = tracks.reduce((sum, track) => sum + (track.info.duration || 0), 0);
+      const hours = Math.floor(totalDuration / 3600000);
+      const minutes = Math.floor((totalDuration % 3600000) / 60000);
+      const seconds = Math.floor((totalDuration % 60000) / 1000);
+      const durationStr = hours > 0 
+        ? `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+        : `${minutes}:${String(seconds).padStart(2, '0')}`;
+      
       embed
-        .setTitle('📀 Playlist Queued')
-        .setDescription(`Added **${tracks.length}** track(s) from **${playlistName}** to the queue.`);
+        .setAuthor({ name: '📀 Playlist Added', iconURL: interaction.user.displayAvatarURL() })
+        .setTitle(playlistName)
+        .setDescription(`┌ **Platform:** ${platform.emoji} ${platform.name}\n├ **Tracks:** ${tracks.length}\n└ **Duration:** ${durationStr}`)
+        .setThumbnail(tracks[0]?.info?.artworkUrl ?? null)
+        .setFooter({ text: `Requested by ${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL() })
+        .setTimestamp();
     } else {
       const track = tracks[0];
+      const queuePos = player.queue.tracks.indexOf(track);
+      const positionText = player.queue.current === track ? '🎵 Now Playing' : `📝 Position ${queuePos + 1} in queue`;
+      
       embed
-        .setTitle('🎵 Queued')
-        .setDescription(`[${track.info.title}](${track.info.uri}) — ${track.info.author || 'Unknown'}`)
-        .setThumbnail(track.info.artworkUrl ?? null)
+        .setAuthor({ name: '🎵 Added to Queue', iconURL: interaction.user.displayAvatarURL() })
+        .setTitle(track.info.title)
+        .setURL(track.info.uri || 'https://discord.com')
+        .setDescription(`**${track.info.author || 'Unknown Artist'}**`)
         .addFields(
-          { name: 'Duration', value: track.info.isStream ? 'LIVE' : formatDuration(track.info.duration), inline: true },
-          { name: 'Position in queue', value: player.queue.current === track ? 'Now playing' : String(player.queue.tracks.indexOf(track) + 1), inline: true },
-        );
+          { name: '⏱️ Duration', value: track.info.isStream ? '🔴 LIVE' : formatDuration(track.info.duration), inline: true },
+          { name: '📊 Position', value: positionText, inline: true },
+          { name: '🎧 Platform', value: `${platform.emoji} ${platform.name}`, inline: true },
+        )
+        .setThumbnail(track.info.artworkUrl ?? null)
+        .setFooter({ text: `Requested by ${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL() })
+        .setTimestamp();
     }
 
-    if (sourceNote) embed.setFooter({ text: sourceNote });
+    if (sourceNote) embed.addFields({ name: '📝 Note', value: sourceNote, inline: false });
 
     return interaction.editReply({ embeds: [embed] });
   },

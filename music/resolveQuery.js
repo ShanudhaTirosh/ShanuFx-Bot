@@ -19,7 +19,7 @@
 
 const { isSpotifyUrl, resolveSpotifyToQueries } = require('./spotifyResolve');
 
-const MAX_FALLBACK_PLAYLIST_TRACKS = 50;
+const MAX_FALLBACK_PLAYLIST_TRACKS = 100; // Increased from 50 to 100
 
 /**
  * @param {import('lavalink-client').Player} player
@@ -61,14 +61,27 @@ async function resolveSpotify(player, query, requester) {
 
   const queries = resolved.queries.slice(0, MAX_FALLBACK_PLAYLIST_TRACKS);
   const tracks = [];
+  const failedTracks = [];
 
   for (const q of queries) {
     try {
-      const searchResult = await player.search({ query: q, source: 'ytmsearch' }, requester);
-      if (searchResult.tracks.length > 0) tracks.push(searchResult.tracks[0]);
+      // Try YouTube Music search first (best for music)
+      let searchResult = await player.search({ query: q, source: 'ytmsearch' }, requester);
+      
+      // If no results, try regular YouTube search as fallback
+      if (searchResult.tracks.length === 0) {
+        searchResult = await player.search({ query: q, source: 'ytsearch' }, requester);
+      }
+      
+      if (searchResult.tracks.length > 0) {
+        tracks.push(searchResult.tracks[0]);
+      } else {
+        failedTracks.push(q);
+      }
     } catch {
       // Skip tracks that fail to resolve individually rather than failing
       // the whole playlist/album import over one bad match.
+      failedTracks.push(q);
     }
   }
 
@@ -76,16 +89,32 @@ async function resolveSpotify(player, query, requester) {
     throw new Error('Found the Spotify link, but couldn\'t match any of its tracks on the connected music server.');
   }
 
+  // Build informative source note
+  let sourceNote;
+  if (resolved.kind === 'track') {
+    sourceNote = 'Matched from Spotify via YouTube Music (this node doesn\'t have direct Spotify support).';
+  } else {
+    const successCount = tracks.length;
+    const totalCount = queries.length;
+    const failedCount = failedTracks.length;
+    
+    let note = `Matched ${successCount}/${totalCount} track(s) from "${resolved.name}" via YouTube Music`;
+    
+    if (failedCount > 0) {
+      note += ` (${failedCount} track(s) couldn't be found)`;
+    }
+    
+    if (resolved.queries.length > queries.length) {
+      note += ` (only the first ${MAX_FALLBACK_PLAYLIST_TRACKS} of ${resolved.queries.length} tracks were checked)`;
+    }
+    
+    sourceNote = note + '.';
+  }
+
   return {
     tracks,
     playlistName: resolved.kind === 'track' ? null : resolved.name,
-    sourceNote:
-      resolved.kind === 'track'
-        ? 'Matched from Spotify via YouTube Music (this node doesn\'t have direct Spotify support).'
-        : `Matched ${tracks.length}/${queries.length} track(s) from "${resolved.name}" via YouTube Music` +
-          (resolved.queries.length > queries.length
-            ? ` (only the first ${MAX_FALLBACK_PLAYLIST_TRACKS} of ${resolved.queries.length} tracks were checked).`
-            : '.'),
+    sourceNote,
   };
 }
 
