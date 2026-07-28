@@ -18,14 +18,41 @@ module.exports = {
   async execute(guild) {
     console.log(`[Guilds] ➕ Joined "${guild.name}" (${guild.id}) — now in ${guild.client.guilds.cache.size} guild(s)`);
 
+    // ── Private bot protection ────────────────────────────────────────────
+    // This bot is private — it only stays in guilds listed in
+    // ALLOWED_GUILD_IDS (comma-separated guild IDs). Anyone who somehow
+    // generates an invite link (e.g. if "Public Bot" ever gets re-enabled
+    // in the Discord Developer Portal) gets auto-kicked out instead of
+    // silently gaining access to a private bot.
+    const allowList = (process.env.ALLOWED_GUILD_IDS || '')
+      .split(',')
+      .map(id => id.trim())
+      .filter(Boolean);
+
+    if (allowList.length > 0 && !allowList.includes(guild.id)) {
+      console.warn(`[Guilds] ⛔ "${guild.name}" (${guild.id}) is not in ALLOWED_GUILD_IDS — leaving (this is a private bot).`);
+      try {
+        const owner = await guild.fetchOwner().catch(() => null);
+        if (owner) {
+          await owner.send(
+            'This bot is private and is not available for other servers. Leaving now.',
+          ).catch(() => {});
+        }
+      } finally {
+        await guild.leave().catch(() => {});
+      }
+      return;
+    }
+
     // Creates the default config row for this guild up front.
     getConfig(guild.id);
 
     guild.client.user.setPresence({
       activities: [
         {
-          name: `${guild.client.guilds.cache.size} server(s) | /help`,
-          type: ActivityType.Watching,
+          name: 'custom',
+          state: '🛡️ Protecting shanudatirosh\'s server',
+          type: ActivityType.Custom,
         },
       ],
       status: 'online',

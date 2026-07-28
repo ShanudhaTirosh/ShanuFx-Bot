@@ -22,8 +22,9 @@ module.exports = {
     client.user.setPresence({
       activities: [
         {
-          name: `${client.guilds.cache.size} server(s) | /help`,
-          type: ActivityType.Watching,
+          name: 'custom',
+          state: '🛡️ Protecting shanudatirosh\'s server',
+          type: ActivityType.Custom,
         },
       ],
       status: 'online',
