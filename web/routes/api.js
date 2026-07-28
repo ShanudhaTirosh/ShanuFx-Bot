@@ -81,6 +81,24 @@ router.put('/guilds/:guildId/config', requireGuildAccess, (req, res) => {
       return res.status(400).json({ error: 'prefix.enabled must be a boolean.' });
     }
   }
+  if (incoming.botStatus !== undefined) {
+    if (typeof incoming.botStatus !== 'object' || incoming.botStatus === null) {
+      return res.status(400).json({ error: 'Invalid "botStatus" in request body.' });
+    }
+    const { statusType, activityType, activityText, activityUrl } = incoming.botStatus;
+    if (statusType && !['online', 'idle', 'dnd', 'invisible'].includes(statusType)) {
+      return res.status(400).json({ error: 'botStatus.statusType must be one of: online, idle, dnd, invisible.' });
+    }
+    if (activityType && !['playing', 'streaming', 'listening', 'watching', 'competing'].includes(activityType)) {
+      return res.status(400).json({ error: 'botStatus.activityType must be one of: playing, streaming, listening, watching, competing.' });
+    }
+    if (activityText !== undefined && activityText !== null && (typeof activityText !== 'string' || activityText.length > 128)) {
+      return res.status(400).json({ error: 'botStatus.activityText must be 128 characters or less.' });
+    }
+    if (activityUrl !== undefined && activityUrl !== null && (typeof activityUrl !== 'string' || !activityUrl.startsWith('https://twitch.tv/'))) {
+      return res.status(400).json({ error: 'botStatus.activityUrl must be a valid Twitch URL (https://twitch.tv/...).' });
+    }
+  }
 
   saveConfig(req.params.guildId, incoming);
   res.json(getConfig(req.params.guildId));

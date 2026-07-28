@@ -135,6 +135,12 @@ addColumnIfMissing('guild_configs', 'music_247_enabled INTEGER NOT NULL DEFAULT 
 addColumnIfMissing('guild_configs', "command_prefix TEXT NOT NULL DEFAULT '.'");
 addColumnIfMissing('guild_configs', 'prefix_commands_enabled INTEGER NOT NULL DEFAULT 1');
 
+// Bot status customization — per-guild configurable status type, text, and URL for Streaming
+addColumnIfMissing('guild_configs', "status_type TEXT NOT NULL DEFAULT 'online'");
+addColumnIfMissing('guild_configs', "activity_type TEXT NOT NULL DEFAULT 'playing'");
+addColumnIfMissing('guild_configs', "activity_text TEXT");
+addColumnIfMissing('guild_configs', "activity_url TEXT");
+
 // Tracks when a session's cached Discord guild-permission list was last
 // refreshed, so we can periodically re-check it instead of trusting a
 // 7-day-old snapshot of "servers this user manages" (see

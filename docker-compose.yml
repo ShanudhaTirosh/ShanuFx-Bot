@@ -11,32 +11,31 @@ services:
     image: ghcr.io/lavalink-devs/lavalink:4-alpine
     container_name: lavalink
     restart: unless-stopped
-    env_file: .env   # application.yml pulls LAVALINK_PASSWORD / SPOTIFY_CLIENT_ID / SPOTIFY_CLIENT_SECRET from here
+    env_file: .env
     environment:
       - _JAVA_OPTIONS=${LAVALINK_JAVA_OPTS:--Xmx1G}
+      - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD}
+      - SERVER_PORT=2333
     volumes:
       - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
       - ./lavalink/plugins:/opt/Lavalink/plugins
       - lavalink-logs:/opt/Lavalink/logs
     ports:
-      # Bound to loopback only — this is deliberate. Nothing outside the
-      # VPS itself should reach Lavalink directly; the Cloudflare Tunnel
-      # (cloudflared, running on the host, see docs/VPS_DEPLOY_GUIDE.md)
-      # is what makes lavalink.shanufx.dev work, by forwarding through
-      # this loopback port. Do NOT change this to "2333:2333" (all
-      # interfaces) unless you have a specific reason to expose it
-      # publicly without the tunnel.
+      # Bound to loopback only for local development
+      # For production, bind to specific interface or use reverse proxy
       - "127.0.0.1:2333:2333"
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:2333/version"]
       interval: 15s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 45s
     deploy:
       resources:
         limits:
-          memory: 1.5G
+          memory: 2G
+        reservations:
+          memory: 1G
 
   bot:
     build: .

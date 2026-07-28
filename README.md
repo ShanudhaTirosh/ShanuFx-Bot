@@ -1,7 +1,69 @@
 # 🤖 Discord Management Bot
 
-A production-ready Discord server management bot built with **Discord.js v14** and **Node.js 22.5+**.  
-Fully modular — commands, events, and handlers are cleanly separated and auto-loaded.
+A production-ready Discord server management bot built with **Discord.js v14** and **Node.js 22.5+** with comprehensive music support via **Lavalink v4**.
+
+---
+
+## 🚀 Quick Start
+
+### **Your Bot ID: `1506844827554287706`**
+
+### Step 1: Get Bot Token
+📖 **See:** [`GET_BOT_TOKEN.md`](GET_BOT_TOKEN.md) for step-by-step instructions
+
+Quick link: https://discord.com/developers/applications/1506844827554287706
+
+### Step 2: Configure
+Your `.env` is already configured! Just add your **bot token**:
+```env
+TOKEN=your_bot_token_here
+```
+
+### Step 3: Start (Windows)
+**Double-click these files:**
+1. `start-bot.bat` → Starts everything
+2. `deploy-commands.bat` → Deploys commands
+3. `start-dashboard.bat` → Opens dashboard (optional)
+
+### Step 4: Invite Bot
+```
+https://discord.com/api/oauth2/authorize?client_id=1506844827554287706&permissions=1099783210054&scope=bot%20applications.commands
+```
+
+---
+
+## 📚 Documentation
+
+| Document | Purpose |
+|----------|---------|
+| **[GET_BOT_TOKEN.md](GET_BOT_TOKEN.md)** | ⭐ **START HERE** - How to get your token |
+| **[FINAL_SUMMARY.md](FINAL_SUMMARY.md)** | ✅ Everything that's done |
+| **[COMPLETE_SETUP.md](COMPLETE_SETUP.md)** | 📖 Complete setup instructions |
+| **[QUICK_START.md](QUICK_START.md)** | ⚡ Fast 5-minute setup |
+| **[SETUP_GUIDE.md](SETUP_GUIDE.md)** | 📚 Detailed guide |
+| **[UPDATES_AND_FIXES.md](UPDATES_AND_FIXES.md)** | 🔧 What changed |
+
+---
+
+## ✨ Features
+
+### 🎵 Music System (Lavalink v4)
+**Sources Supported:**
+- ✅ YouTube (links, playlists, search)
+- ✅ Spotify (tracks, albums, playlists) - **No credentials needed!**
+- ✅ Apple Music
+- ✅ Deezer  
+- ✅ SoundCloud
+- ✅ Direct audio URLs
+
+**Plugins Installed:**
+- YouTube Source v1.13.5 (multi-client rotation)
+- LavaSrc v4.8.0 (multi-platform support)
+- LavaSearch v1.0.0 (advanced search)
+- LavaLyrics v1.0.0 (lyrics support)
+
+**15 Music Commands:**
+`/play` `/queue` `/skip` `/stop` `/pause` `/resume` `/nowplaying` `/volume` `/loop` `/shuffle` `/remove` `/clear` `/seek` `/leave` `/247`
 
 > **Storage:** guild config, warnings, and moderation history are stored in a local SQLite
 > database (`data/bot.db`, via Node's built-in `node:sqlite`) instead of per-guild JSON

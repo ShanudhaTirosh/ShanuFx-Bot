@@ -68,6 +68,7 @@
     <button class="nav-btn" data-section="autorole">🎭 Auto-role</button>
     <button class="nav-btn" data-section="logs">📋 Logs</button>
     <button class="nav-btn" data-section="antispam">🛡️ Anti-Spam</button>
+    <button class="nav-btn" data-section="botstatus">🤖 Bot Status</button>
     <button class="nav-btn" data-section="prefix">⌨️ Prefix Commands</button>
     <button class="nav-btn" data-section="escalation">⚙️ Auto-Escalation</button>
     <button class="nav-btn" data-section="warnings">⚠️ Warnings</button>
@@ -222,6 +223,45 @@
       <div class="save-bar"><button class="btn btn-primary" onclick="saveConfig()">Save changes</button></div>
     </section>
 
+    <!-- ── Bot Status ───────────────────────────────────────────────────── -->
+    <section class="section" id="section-botstatus">
+      <h1>Bot Status</h1>
+      <p class="subtitle">Customize the bot's online status and activity. Changes apply globally to the bot.</p>
+      <div class="panel">
+        <div class="field">
+          <label>Status Type</label>
+          <select id="status-type">
+            <option value="online">🟢 Online</option>
+            <option value="idle">🟡 Idle</option>
+            <option value="dnd">🔴 Do Not Disturb</option>
+            <option value="invisible">⚪ Invisible</option>
+          </select>
+          <div class="field-hint">The colored indicator next to the bot's name</div>
+        </div>
+        <div class="field">
+          <label>Activity Type</label>
+          <select id="activity-type">
+            <option value="playing">Playing</option>
+            <option value="streaming">Streaming</option>
+            <option value="listening">Listening to</option>
+            <option value="watching">Watching</option>
+            <option value="competing">Competing in</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Activity Text</label>
+          <input type="text" id="activity-text" maxlength="128" placeholder="e.g. /help | Managing servers">
+          <div class="field-hint">What the bot is doing (max 128 characters, leave blank for no activity)</div>
+        </div>
+        <div class="field">
+          <label>Streaming URL (Twitch only)</label>
+          <input type="text" id="activity-url" placeholder="https://twitch.tv/your_channel">
+          <div class="field-hint">Required for Streaming type. Must be a valid Twitch URL.</div>
+        </div>
+      </div>
+      <div class="save-bar"><button class="btn btn-primary" onclick="saveConfig()">Save changes</button></div>
+    </section>
+
     <!-- ── Prefix Commands ──────────────────────────────────────────────── -->
     <section class="section" id="section-prefix">
       <h1>Prefix Commands</h1>
@@ -361,6 +401,11 @@ function populateForm(c) {
   document.getElementById('prefix-enabled').checked = c.prefix?.enabled ?? true;
   document.getElementById('prefix-value').value = c.prefix?.value ?? '.';
 
+  document.getElementById('status-type').value = c.botStatus?.statusType ?? 'online';
+  document.getElementById('activity-type').value = c.botStatus?.activityType ?? 'playing';
+  document.getElementById('activity-text').value = c.botStatus?.activityText ?? '';
+  document.getElementById('activity-url').value = c.botStatus?.activityUrl ?? '';
+
   document.getElementById('esc-mute-at').value = c.warnThresholds.muteAt ?? 0;
   document.getElementById('esc-mute-duration').value = c.warnThresholds.muteDuration;
   document.getElementById('esc-kick-at').value = c.warnThresholds.kickAt ?? 0;
@@ -398,6 +443,12 @@ function readForm() {
     prefix: {
       enabled: document.getElementById('prefix-enabled').checked,
       value: document.getElementById('prefix-value').value.trim() || '.',
+    },
+    botStatus: {
+      statusType: document.getElementById('status-type').value,
+      activityType: document.getElementById('activity-type').value,
+      activityText: document.getElementById('activity-text').value.trim() || null,
+      activityUrl: document.getElementById('activity-url').value.trim() || null,
     },
     warnThresholds: {
       muteAt: Number(document.getElementById('esc-mute-at').value) || null,

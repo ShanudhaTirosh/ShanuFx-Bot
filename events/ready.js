@@ -3,7 +3,7 @@
  * Fires once after the bot successfully logs in and is ready.
  */
 
-const { ActivityType } = require('discord.js');
+const { setupDefaultStatus } = require('../utils/botStatus');
 
 module.exports = {
   name: 'ready',
@@ -19,15 +19,9 @@ module.exports = {
     console.log(`  👥 Users:      ${client.users.cache.size}`);
     console.log(`${'─'.repeat(50)}\n`);
 
-    client.user.setPresence({
-      activities: [
-        {
-          name: `${client.guilds.cache.size} server(s) | /help`,
-          type: ActivityType.Watching,
-        },
-      ],
-      status: 'online',
-    });
+    // Set up bot status from config (for private/single-guild bots)
+    // or use default if multi-guild
+    setupDefaultStatus(client);
 
     if (client.lavalink && !client.lavalink.initiated) {
       client.lavalink.init({ id: client.user.id, username: client.user.username });

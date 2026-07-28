@@ -42,6 +42,7 @@ const UPDATE = db.prepare(`
     antispam_enabled = ?, antispam_limit = ?, antispam_window = ?,
     antispam_action = ?, antispam_block_invites = ?,
     warn_mute_at = ?, warn_mute_duration = ?, warn_kick_at = ?, warn_ban_at = ?,
+    status_type = ?, activity_type = ?, activity_text = ?, activity_url = ?,
     updated_at = datetime('now')
   WHERE guild_id = ?
 `);
@@ -84,6 +85,12 @@ function rowToConfig(row, guildId) {
     prefix: {
       value: row.command_prefix || '.',
       enabled: row.prefix_commands_enabled === undefined ? true : !!row.prefix_commands_enabled,
+    },
+    botStatus: {
+      statusType: row.status_type || 'online',
+      activityType: row.activity_type || 'playing',
+      activityText: row.activity_text || null,
+      activityUrl: row.activity_url || null,
     },
     // Read-only convenience view; use warningsHandler for real reads/writes.
     get warnings() {
@@ -144,6 +151,10 @@ function saveConfig(guildId, config) {
     config.warnThresholds?.muteDuration ?? 30,
     config.warnThresholds?.kickAt ?? null,
     config.warnThresholds?.banAt ?? null,
+    config.botStatus?.statusType ?? 'online',
+    config.botStatus?.activityType ?? 'playing',
+    config.botStatus?.activityText ?? null,
+    config.botStatus?.activityUrl ?? null,
     guildId,
   );
 
