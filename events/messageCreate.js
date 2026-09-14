@@ -169,7 +169,7 @@ async function tryHandlePrefixCommand(message) {
   if (!commandName) return false;
 
   const command = message.client.commands.get(commandName);
-  if (!command) return false; // not a recognized command — treat as a normal message, not an "attempt"
+  if (!command) return true; // Command attempt with invalid name — skip anti-spam but don't process
 
   // ── Permission gate ─────────────────────────────────────────────────────
   // Slash commands get this enforced by Discord itself before the
@@ -187,6 +187,7 @@ async function tryHandlePrefixCommand(message) {
   }
 
   // ── Cooldown ─────────────────────────────────────────────────────────────
+  // Only start cooldown AFTER validating the command exists and user has permission
   const { onCooldown, remainingMs } = checkAndStart(command, message.author.id, message.guild.id);
   if (onCooldown) {
     await message.reply({

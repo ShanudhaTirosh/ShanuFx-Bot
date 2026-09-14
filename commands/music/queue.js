@@ -22,9 +22,10 @@ module.exports = {
       return interaction.reply({ embeds: [err('The queue is empty.')], ephemeral: true });
     }
 
+    const guildId = interaction.guild.id;
     const totalPages = Math.max(1, Math.ceil(player.queue.tracks.length / PAGE_SIZE));
     await interaction.reply({
-      embeds: [buildPageEmbed(player, 0, totalPages)],
+      embeds: [buildPageEmbed(interaction.client, guildId, 0, totalPages)],
       components: totalPages > 1 ? [buildRow(0, totalPages)] : [],
     });
 
@@ -37,14 +38,30 @@ module.exports = {
     collector.on('collect', async i => {
       if (i.customId === 'queue_prev') page = Math.max(0, page - 1);
       if (i.customId === 'queue_next') page = Math.min(totalPages - 1, page + 1);
-      await i.update({ embeds: [buildPageEmbed(player, page, totalPages)], components: [buildRow(page, totalPages)] });
+      
+      // Fetch fresh player state to prevent stale data if player was destroyed
+      const currentPlayer = interaction.client.lavalink?.getPlayer(guildId);
+      if (!currentPlayer) {
+        await i.update({ embeds: [err('Player no longer active.')], components: [] });
+        collector.stop();
+        return;
+      }
+      
+      const currentTotalPages = Math.max(1, Math.ceil(currentPlayer.queue.tracks.length / PAGE_SIZE));
+      await i.update({ embeds: [buildPageEmbed(interaction.client, guildId, page, currentTotalPages)], components: [buildRow(page, currentTotalPages)] });
     });
 
     collector.on('end', () => interaction.editReply({ components: [] }).catch(() => {}));
   },
 };
 
-function buildPageEmbed(player, page, totalPages) {
+function buildPageEmbed(client, guildId, page, totalPages) {
+  // Fetch fresh player state to prevent using stale references
+  const player = client.lavalink?.getPlayer(guildId);
+  if (!player) {
+    return new EmbedBuilder().setColor(0xED4245).setDescription('❌ Player no longer active.');
+  }
+
   const items = player.queue.tracks.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
   const lines = items.map((t, i) => {
     const pos = page * PAGE_SIZE + i + 1;
@@ -63,7 +80,7 @@ function buildPageEmbed(player, page, totalPages) {
 
   const embed = new EmbedBuilder()
     .setColor(color)
-    .setAuthor({ name: '📜 Music Queue', iconURL: player.client.user.displayAvatarURL() });
+    .setAuthor({ name: '📜 Music Queue', iconURL: client.user.displayAvatarURL() });
 
   if (currentTrack) {
     const platform = currentTrack.info.uri?.includes('spotify.com') ? '🟢 Spotify' :
@@ -94,7 +111,7 @@ function buildPageEmbed(player, page, totalPages) {
   
   embed.setFooter({
     text: `${player.queue.tracks.length} track(s) • ${formatDuration(totalMs)} total${loopText} • Page ${page + 1}/${totalPages}`,
-    iconURL: player.client.user.displayAvatarURL(),
+    iconURL: client.user.displayAvatarURL(),
   })
   .setTimestamp();
 

@@ -42,10 +42,16 @@ function scheduleIdleDisconnect(player, delayMs, reasonText) {
     console.log(`[Music] Auto-leaving guild ${guildId} (${reasonText}, idle timeout reached)`);
     
     // Send disconnect message
-    const channel = current.client?.channels?.cache?.get(current.textChannelId);
-    if (channel?.isTextBased?.()) {
-      const minutes = Math.floor(delayMs / 60000);
-      await channel.send(`No tracks have been playing for the past ${minutes} minute(s), leaving`).catch(() => {});
+    try {
+      if (current.client && current.client.channels) {
+        const channel = current.client.channels.cache.get(current.textChannelId);
+        if (channel?.isTextBased?.()) {
+          const minutes = Math.floor(delayMs / 60000);
+          await channel.send(`No tracks have been playing for the past ${minutes} minute(s), leaving`).catch(() => {});
+        }
+      }
+    } catch (err) {
+      console.error(`[Music] Failed to send disconnect message: ${err.message}`);
     }
     
     await current.destroy().catch(() => {});

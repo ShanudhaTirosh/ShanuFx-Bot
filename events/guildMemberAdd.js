@@ -26,7 +26,8 @@ module.exports = {
         console.warn(`[AutoRole] Role ${config.autorole.roleId} not found in ${guild.name}`);
       } else {
         const botMember = guild.members.me;
-        if (role.position >= botMember.roles.highest.position) {
+        const botHighestPosition = botMember.roles.highest.position;
+        if (role.position >= botHighestPosition) {
           console.warn(`[AutoRole] Cannot assign "${role.name}" — role is above bot's highest role`);
         } else {
           try {

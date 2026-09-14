@@ -37,11 +37,15 @@ module.exports = {
       if (!wasServerMuted && isServerMuted) {
         console.log(`[Music] Bot server muted in guild ${guildId}, pausing playback`);
         if (player.playing && !player.paused) {
-          await player.pause();
-          
-          const channel = client.channels.cache.get(player.textChannelId);
-          if (channel?.isTextBased()) {
-            channel.send('⏸️ Paused - Bot was server muted').catch(() => {});
+          try {
+            await player.pause();
+            
+            const channel = client.channels.cache.get(player.textChannelId);
+            if (channel?.isTextBased()) {
+              channel.send('⏸️ Paused - Bot was server muted').catch(() => {});
+            }
+          } catch (err) {
+            console.error(`[Music] Failed to pause on server mute: ${err.message}`);
           }
         }
       }
@@ -49,12 +53,16 @@ module.exports = {
       // Bot was muted → unmuted
       if (wasServerMuted && !isServerMuted) {
         console.log(`[Music] Bot server unmuted in guild ${guildId}, resuming playback`);
-        if (!player.playing && player.paused) {
-          await player.resume();
-          
-          const channel = client.channels.cache.get(player.textChannelId);
-          if (channel?.isTextBased()) {
-            channel.send('▶️ Resumed - Bot was unmuted').catch(() => {});
+        if (player.paused && !player.playing) {
+          try {
+            await player.resume();
+            
+            const channel = client.channels.cache.get(player.textChannelId);
+            if (channel?.isTextBased()) {
+              channel.send('▶️ Resumed - Bot was unmuted').catch(() => {});
+            }
+          } catch (err) {
+            console.error(`[Music] Failed to resume on server unmute: ${err.message}`);
           }
         }
       }

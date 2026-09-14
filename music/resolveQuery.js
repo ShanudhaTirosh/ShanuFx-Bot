@@ -21,7 +21,12 @@ async function resolveQuery(player, query, requester) {
     return resolveSpotify(player, query, requester);
   }
 
-  const result = await player.search({ query }, requester);
+  // Clean YouTube radio/autoplay parameters
+  // YouTube radio links contain parameters like &list=RDMM... &start_radio=1
+  // which create dynamic playlists. Extract just the video ID.
+  const cleanedQuery = cleanYouTubeRadioUrl(query);
+
+  const result = await player.search({ query: cleanedQuery }, requester);
   
   if (result.loadType === 'error') {
     throw new Error(result.exception?.message || 'That link/search failed to load.');
@@ -47,6 +52,61 @@ async function resolveQuery(player, query, requester) {
     playlistName: null,
     sourceNote: null,
   };
+}
+
+/**
+ * Cleans YouTube radio/autoplay URLs by extracting just the video ID
+ * Example: https://www.youtube.com/watch?v=VIDEO_ID&list=RDMMVIDEO_ID&start_radio=1
+ * Becomes: https://www.youtube.com/watch?v=VIDEO_ID
+ * 
+ * @param {string} query
+ * @returns {string} Cleaned query
+ */
+function cleanYouTubeRadioUrl(query) {
+  // Only process if it looks like a YouTube URL
+  if (!query.includes('youtube.com') && !query.includes('youtu.be')) {
+    return query;
+  }
+
+  try {
+    const url = new URL(query);
+    
+    // Handle standard YouTube URLs (youtube.com/watch?v=...)
+    if (url.hostname.includes('youtube.com') && url.pathname === '/watch') {
+      const videoId = url.searchParams.get('v');
+      if (videoId) {
+        // Check if this is a radio/mix link (starts with RDMM, RDCM, etc.)
+        const listParam = url.searchParams.get('list');
+        if (listParam && (listParam.startsWith('RDMM') || listParam.startsWith('RDCM') || listParam.startsWith('RDEM'))) {
+          // This is a YouTube radio/mix - return just the video
+          console.log(`[Music] Detected YouTube radio link, extracting video: ${videoId}`);
+          return `https://www.youtube.com/watch?v=${videoId}`;
+        }
+        
+        // Regular playlist - keep the list parameter
+        if (listParam && !url.searchParams.has('start_radio')) {
+          return `https://www.youtube.com/watch?v=${videoId}&list=${listParam}`;
+        }
+        
+        // Just a video, clean up any extra parameters
+        return `https://www.youtube.com/watch?v=${videoId}`;
+      }
+    }
+    
+    // Handle short YouTube URLs (youtu.be/...)
+    if (url.hostname === 'youtu.be') {
+      const videoId = url.pathname.slice(1); // Remove leading slash
+      if (videoId) {
+        console.log(`[Music] Short YouTube URL detected: ${videoId}`);
+        return `https://www.youtube.com/watch?v=${videoId}`;
+      }
+    }
+  } catch (e) {
+    // Not a valid URL, return as-is (might be a search query)
+    return query;
+  }
+
+  return query;
 }
 
 async function resolveSpotify(player, query, requester) {

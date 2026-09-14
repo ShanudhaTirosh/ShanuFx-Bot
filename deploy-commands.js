@@ -27,8 +27,12 @@ for (const category of categories) {
   for (const file of files) {
     const command = require(path.join(categoryPath, file));
     if ('data' in command && 'execute' in command) {
-      commands.push(command.data.toJSON());
-      console.log(`[Deploy] Queued: /${command.data.name}`);
+      try {
+        commands.push(command.data.toJSON());
+        console.log(`[Deploy] Queued: /${command.data.name}`);
+      } catch (err) {
+        console.warn(`[Deploy] Skipped ${file} — failed to serialize command data: ${err.message}`);
+      }
     } else {
       console.warn(`[Deploy] Skipped ${file} — missing data or execute export`);
     }
