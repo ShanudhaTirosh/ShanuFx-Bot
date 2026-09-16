@@ -5,6 +5,7 @@
 
 const { EmbedBuilder } = require('discord.js');
 const { checkAndStart } = require('../handlers/cooldownHandler');
+const { handleMusicButton } = require('../handlers/musicButtonHandler');
 
 module.exports = {
   name: 'interactionCreate',
@@ -14,7 +15,28 @@ module.exports = {
    * @param {import('discord.js').Interaction} interaction
    */
   async execute(interaction) {
-    // Only handle slash commands
+    // Music control buttons (⏯️ ⏭️ ⏹️ 🔀 🔁) attached to now-playing
+    // messages. Anything else button-related (e.g. queue.js's own
+    // pagination buttons) is handled by that command's own message
+    // collector and never needs to reach here.
+    if (interaction.isButton() && interaction.customId.startsWith('music_')) {
+      try {
+        await handleMusicButton(interaction);
+      } catch (err) {
+        console.error(`[Interactions] Error handling music button "${interaction.customId}":`, err);
+        const errorEmbed = new EmbedBuilder()
+          .setColor(0xED4245)
+          .setDescription('❌ Something went wrong handling that button.');
+        if (interaction.replied || interaction.deferred) {
+          await interaction.followUp({ embeds: [errorEmbed], ephemeral: true }).catch(() => {});
+        } else {
+          await interaction.reply({ embeds: [errorEmbed], ephemeral: true }).catch(() => {});
+        }
+      }
+      return;
+    }
+
+    // Only handle slash commands from here on
     if (!interaction.isChatInputCommand()) return;
 
     const command = interaction.client.commands.get(interaction.commandName);

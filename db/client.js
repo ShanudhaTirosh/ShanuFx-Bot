@@ -99,6 +99,35 @@ db.exec(`
     created_at       TEXT NOT NULL DEFAULT (datetime('now'))
   );
   CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions (expires_at);
+
+  -- Dashboard-managed playlists. Guild-scoped (any manager can use them,
+  -- same as every other dashboard feature) rather than per-user, since
+  -- the point is a shared library the whole mod team can queue from.
+  -- Tracks are stored by URI + display metadata, not Lavalink's opaque
+  -- encoded track blobs — those are node-specific and can go stale, so
+  -- playlists are re-resolved fresh (player.search on the stored URI)
+  -- at play time instead, exactly like pasting the link into /play.
+  CREATE TABLE IF NOT EXISTS playlists (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    guild_id    TEXT NOT NULL,
+    name        TEXT NOT NULL,
+    created_by  TEXT NOT NULL,
+    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_playlists_guild ON playlists (guild_id);
+
+  CREATE TABLE IF NOT EXISTS playlist_tracks (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    playlist_id  INTEGER NOT NULL REFERENCES playlists(id) ON DELETE CASCADE,
+    position     INTEGER NOT NULL,
+    title        TEXT NOT NULL,
+    author       TEXT,
+    uri          TEXT NOT NULL,
+    artwork_url  TEXT,
+    duration_ms  INTEGER,
+    added_at     TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_playlist_tracks_playlist ON playlist_tracks (playlist_id, position);
 `);
 
 // ─── Lightweight column migrations ─────────────────────────────────────────────

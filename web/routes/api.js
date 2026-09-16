@@ -11,6 +11,8 @@
  * SQLite DB in Phase 1: the bot and the dashboard are never out of sync.
  */
 
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
 const { requireGuildAccess } = require('../middleware/auth');
 const { requireSnowflakeParam, optionalSnowflakeQuery, requirePositiveIntParam } = require('../middleware/validate');
@@ -20,6 +22,48 @@ const { getRecentActions, getActionsForUser } = require('../../handlers/modActio
 const { db } = require('../../db/client');
 
 const router = express.Router();
+
+// ── Command reference ────────────────────────────────────────────────────────
+// Reads the same commands/** directory the bot loads at startup, so the
+// dashboard's command list can never drift out of sync with what's actually
+// registered. This is read fresh (not cached) so it stays cheap to keep
+// correct — command files rarely change at runtime, but if they do (or a
+// new one is added and the bot restarted) the list here reflects it without
+// needing to touch this route.
+let commandListCache = null;
+
+function loadCommandList() {
+  if (commandListCache) return commandListCache;
+
+  const commandsRoot = path.join(__dirname, '..', '..', 'commands');
+  const result = [];
+
+  if (!fs.existsSync(commandsRoot)) return result;
+
+  for (const category of fs.readdirSync(commandsRoot)) {
+    const categoryPath = path.join(commandsRoot, category);
+    if (!fs.statSync(categoryPath).isDirectory()) continue;
+
+    for (const file of fs.readdirSync(categoryPath).filter(f => f.endsWith('.js'))) {
+      try {
+        const command = require(path.join(categoryPath, file));
+        if (!command?.data?.toJSON) continue;
+        const json = command.data.toJSON();
+        result.push({ name: json.name, description: json.description, category });
+      } catch {
+        // A single bad command file shouldn't break the whole reference list.
+      }
+    }
+  }
+
+  result.sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
+  commandListCache = result;
+  return result;
+}
+
+router.get('/commands', (req, res) => {
+  res.json(loadCommandList());
+});
 
 // Validate the shape of :guildId on every /guilds/:guildId/* route before
 // even checking permissions — a malformed id should never reach the

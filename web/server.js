@@ -21,6 +21,7 @@ validateEnv(
 const { attachSession, requireAuth } = require('./middleware/auth');
 const authRoutes = require('./routes/auth');
 const apiRoutes = require('./routes/api');
+const musicRoutes = require('./routes/music');
 
 const app = express();
 const PORT = process.env.DASHBOARD_PORT || 3000;
@@ -136,6 +137,7 @@ app.get('/health', (req, res) => res.json({ ok: true }));
 
 app.use('/auth', authLimiter, authRoutes);
 app.use('/api', apiLimiter, requireAuth, requireSameOrigin, apiRoutes);
+app.use('/api', apiLimiter, requireAuth, requireSameOrigin, musicRoutes);
 
 // These two must be registered BEFORE express.static — otherwise the static
 // middleware would serve public/dashboard.html and public/guild.html

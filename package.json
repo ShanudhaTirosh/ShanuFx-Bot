@@ -28,6 +28,11 @@
     "lavalink-client": "^2.10.3",
     "spotify-url-info": "^3.3.1"
   },
-  "keywords": ["discord", "bot", "moderation", "discord.js"],
+  "keywords": [
+    "discord",
+    "bot",
+    "moderation",
+    "discord.js"
+  ],
   "license": "MIT"
 }

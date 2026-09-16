@@ -42,6 +42,8 @@ services:
     image: discord-management-bot:latest
     command: ["node", "shard.js"]
     env_file: .env
+    environment:
+      INTERNAL_API_HOST: "0.0.0.0"  # reachable from the dashboard container over the compose network; never published via `ports:` below
     depends_on:
       - lavalink
     volumes:
@@ -73,6 +75,7 @@ services:
     env_file: .env
     environment:
       NODE_ENV: production
+      BOT_INTERNAL_URL: "http://bot:3100"  # reaches the bot container's internal API over the compose network
     ports:
       - "${DASHBOARD_PORT:-3000}:3000"
     volumes:

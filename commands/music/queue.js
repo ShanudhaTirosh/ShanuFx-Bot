@@ -128,3 +128,7 @@ function buildRow(page, totalPages) {
 function err(text) {
   return new EmbedBuilder().setColor(0xED4245).setDescription(`❌ ${text}`);
 }
+
+module.exports.buildPageEmbed = buildPageEmbed;
+module.exports.buildRow = buildRow;
+module.exports.PAGE_SIZE = PAGE_SIZE;

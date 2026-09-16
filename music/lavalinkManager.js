@@ -25,6 +25,13 @@ const { LavalinkManager } = require('lavalink-client');
 const { EmbedBuilder } = require('discord.js');
 const { buildNodes } = require('./nodes');
 const { onQueueEnd, onActivityResumed } = require('./idleTimers');
+const { formatDuration } = require('./format');
+const {
+  buildTrackEmbed,
+  buildControlsRow,
+  trackActiveMessage,
+  disableActiveControls,
+} = require('./nowPlayingEmbed');
 
 /**
  * @param {import('discord.js').Client} client
@@ -85,26 +92,42 @@ function createLavalinkManager(client) {
   });
 
   // ── Track / queue notifications ──────────────────────────────────────────
-  manager.on('trackStart', (player, track) => {
+  manager.on('trackStart', async (player, track) => {
     onActivityResumed(player.guildId);
+
+    // The previous now-playing message (if any) is no longer current —
+    // freeze its buttons so clicking "skip" on it later can't act on
+    // whatever happens to be playing by then.
+    await disableActiveControls(client, player.guildId, player);
 
     const channel = client.channels.cache.get(player.textChannelId);
     if (!channel?.isTextBased()) return;
 
-    // Simple text message like the screenshot
-    const title = track.info.title;
-    const author = track.info.author || 'Unknown';
-    
-    channel.send(`🔴 Started playing ${title} by ${author}`).catch(() => {});
+    try {
+      const message = await channel.send({
+        embeds: [buildTrackEmbed(client, player, track)],
+        components: [buildControlsRow(player)],
+      });
+      trackActiveMessage(player.guildId, message);
+    } catch (err) {
+      console.error(`[Music] Failed to send now-playing message in guild ${player.guildId}:`, err.message);
+    }
   });
 
-  manager.on('queueEnd', player => {
+  manager.on('queueEnd', async player => {
     onQueueEnd(player);
+    await disableActiveControls(client, player.guildId, null);
 
     const channel = client.channels.cache.get(player.textChannelId);
     if (channel?.isTextBased()) {
-      channel.send('There are no more tracks').catch(() => {});
+      channel.send({
+        embeds: [new EmbedBuilder().setColor(0x5865F2).setDescription('📭 Queue finished — nothing left to play.')],
+      }).catch(() => {});
     }
+  });
+
+  manager.on('playerDestroy', async player => {
+    await disableActiveControls(client, player.guildId, null);
   });
 
   manager.on('playerDisconnect', player => {
@@ -154,16 +177,6 @@ function failoverPlayersFromNode(client, manager, deadNodeId, reasonText) {
         }
       });
   }
-}
-
-function formatDuration(ms) {
-  if (!ms || ms <= 0) return '0:00';
-  const totalSeconds = Math.floor(ms / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  const pad = n => String(n).padStart(2, '0');
-  return hours > 0 ? `${hours}:${pad(minutes)}:${pad(seconds)}` : `${minutes}:${pad(seconds)}`;
 }
 
 module.exports = { createLavalinkManager, formatDuration };

@@ -7,12 +7,47 @@
 <link rel="stylesheet" href="/style.css">
 <style>
   .layout { display: grid; grid-template-columns: 230px 1fr; min-height: 100vh; }
-  @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } }
 
   .sidebar {
     border-right: 1px solid var(--border); padding: 1.2rem 0.8rem;
     display: flex; flex-direction: column; gap: 0.2rem;
-    position: sticky; top: 0; height: 100vh;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+
+  .mobile-topbar { display: none; }
+  .sidebar-scrim { display: none; }
+
+  /* Below 800px the sidebar becomes a slide-out drawer instead of just
+     vanishing — it's still the only way to switch sections, so it must
+     stay reachable. */
+  @media (max-width: 800px) {
+    .layout { grid-template-columns: 1fr; }
+
+    .mobile-topbar {
+      display: flex; align-items: center; gap: 0.8rem;
+      padding: 0.9rem 1rem; border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 20; background: var(--bg);
+    }
+    .mobile-topbar .sidebar-guild-name { font-size: 0.95rem; }
+    .menu-toggle {
+      background: var(--surface); border: 1px solid var(--border); color: var(--text);
+      border-radius: var(--radius-sm); padding: 0.5rem 0.7rem; cursor: pointer; font-size: 1rem;
+      line-height: 1;
+    }
+
+    .sidebar {
+      position: fixed; top: 0; left: 0; height: 100vh; width: 250px; z-index: 30;
+      background: var(--bg); box-shadow: 2px 0 16px rgba(0,0,0,0.4);
+      transform: translateX(-100%); transition: transform 0.2s ease;
+    }
+    .sidebar.open { transform: translateX(0); }
+
+    .sidebar-scrim {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 25;
+    }
+    .sidebar-scrim.open { display: block; }
+
+    .content { padding-top: 1.4rem; }
   }
   .sidebar-header { padding: 0.6rem 0.6rem 1.2rem; }
   .sidebar-guild-name { font-family: var(--font-display); font-weight: 700; font-size: 1rem; }
@@ -53,17 +88,76 @@
     padding: 0.9rem 1rem; margin-bottom: 0.6rem; display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;
   }
   .warn-meta { font-size: 0.78rem; color: var(--text-faint); margin-top: 0.3rem; font-family: var(--font-mono); }
+
+  .cmd-category { margin-bottom: 1.6rem; }
+  .cmd-category-title {
+    font-family: var(--font-display); font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--text-faint); margin-bottom: 0.6rem;
+  }
+  .cmd-item {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 0.8rem 1rem; margin-bottom: 0.5rem;
+  }
+  .cmd-name { font-family: var(--font-mono); font-weight: 600; }
+  .cmd-desc { color: var(--text-muted); font-size: 0.86rem; margin-top: 0.2rem; }
+
+  /* ── Music ── */
+  .np-card { display: flex; gap: 1rem; align-items: flex-start; }
+  .np-art {
+    width: 72px; height: 72px; border-radius: var(--radius-sm); object-fit: cover;
+    background: var(--surface-2); flex-shrink: 0;
+  }
+  .np-info { flex: 1; min-width: 0; }
+  .np-title { font-weight: 600; font-size: 1rem; overflow-wrap: anywhere; }
+  .np-author { color: var(--text-muted); font-size: 0.86rem; margin-top: 0.15rem; }
+  .np-meta { color: var(--text-faint); font-size: 0.78rem; margin-top: 0.4rem; font-family: var(--font-mono); }
+  .np-progress-track {
+    height: 5px; border-radius: 3px; background: var(--surface-2); margin-top: 0.6rem; overflow: hidden;
+  }
+  .np-progress-fill { height: 100%; background: var(--primary); border-radius: 3px; }
+  .np-controls { display: flex; gap: 0.5rem; margin-top: 0.9rem; flex-wrap: wrap; }
+  .np-controls .btn { padding: 0.5rem 0.7rem; font-size: 0.95rem; }
+  .np-volume { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.8rem; }
+  .np-volume input[type="range"] { flex: 1; }
+  .np-volume-value { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); width: 3.2em; text-align: right; }
+
+  .playlist-item {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 0.9rem 1rem; margin-bottom: 0.6rem;
+  }
+  .playlist-header { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; cursor: pointer; }
+  .playlist-name { font-weight: 600; }
+  .playlist-meta { color: var(--text-faint); font-size: 0.8rem; font-family: var(--font-mono); }
+  .playlist-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+  .playlist-tracks { margin-top: 0.8rem; border-top: 1px solid var(--border); padding-top: 0.8rem; display: none; }
+  .playlist-tracks.open { display: block; }
+  .pl-track-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+    padding: 0.4rem 0; font-size: 0.86rem;
+  }
+  .pl-track-row + .pl-track-row { border-top: 1px solid var(--border); }
+  .pl-track-title { overflow-wrap: anywhere; }
+  .pl-track-author { color: var(--text-faint); font-size: 0.78rem; }
+  .pl-add-track { display: flex; gap: 0.5rem; margin-top: 0.7rem; }
+  .pl-add-track input { flex: 1; }
 </style>
 </head>
 <body>
 
+<div class="mobile-topbar">
+  <button class="menu-toggle" id="menu-toggle" aria-label="Open menu" aria-expanded="false">☰</button>
+  <div class="sidebar-guild-name" id="mobile-guild-name">Loading…</div>
+</div>
+<div class="sidebar-scrim" id="sidebar-scrim"></div>
+
 <div class="layout">
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <a href="/dashboard.html" class="sidebar-back">← All servers</a>
       <div class="sidebar-guild-name" id="sidebar-guild-name" style="margin-top: 0.4rem;">Loading…</div>
     </div>
     <button class="nav-btn active" data-section="overview">📊 Overview</button>
+    <button class="nav-btn" data-section="music">🎵 Music</button>
     <button class="nav-btn" data-section="welcome">👋 Welcome &amp; Goodbye</button>
     <button class="nav-btn" data-section="autorole">🎭 Auto-role</button>
     <button class="nav-btn" data-section="logs">📋 Logs</button>
@@ -73,6 +167,7 @@
     <button class="nav-btn" data-section="escalation">⚙️ Auto-Escalation</button>
     <button class="nav-btn" data-section="warnings">⚠️ Warnings</button>
     <button class="nav-btn" data-section="cases">🗂️ Case History</button>
+    <button class="nav-btn" data-section="commands">⚡ Commands</button>
   </aside>
 
   <main class="content">
@@ -85,6 +180,45 @@
       <div class="panel">
         <div class="panel-title">Recent case activity</div>
         <div class="console" id="overview-console"><div class="console-empty">Loading…</div></div>
+      </div>
+    </section>
+
+    <!-- ── Music ────────────────────────────────────────────────────────── -->
+    <section class="section" id="section-music">
+      <h1>Music</h1>
+      <p class="subtitle">Control live playback and manage saved playlists.</p>
+
+      <div class="panel" id="music-offline-notice" style="display:none; border-color: var(--warn);">
+        <div class="panel-title">⚠️ Not available</div>
+        <p id="music-offline-message" class="subtitle" style="margin:0;"></p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Now Playing</div>
+        <div id="now-playing-card"><div class="empty-state">Loading…</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Play something</div>
+        <div class="field">
+          <label>Voice channel</label>
+          <select id="voice-channel-select"><option value="">Loading voice channels…</option></select>
+        </div>
+        <div class="field" style="display:flex; gap:0.6rem; align-items:flex-end;">
+          <div style="flex:1;">
+            <label>Search or link</label>
+            <input type="text" id="play-query-input" placeholder="Search or paste a YouTube/Spotify/SoundCloud link…">
+          </div>
+          <button class="btn btn-primary" id="play-query-btn">▶️ Play</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">
+          Playlists
+          <button class="btn btn-ghost btn-sm" id="new-playlist-btn" style="float:right;">➕ New Playlist</button>
+        </div>
+        <div id="playlists-list"><div class="empty-state">Loading…</div></div>
       </div>
     </section>
 
@@ -331,13 +465,30 @@
       <div class="console" id="cases-console"><div class="console-empty">Loading…</div></div>
     </section>
 
+    <!-- ── Commands ─────────────────────────────────────────────────────── -->
+    <section class="section" id="section-commands">
+      <h1>Commands</h1>
+      <p class="subtitle">Every command works as a slash command, and as a text command with your configured prefix.</p>
+      <input type="text" id="commands-search" placeholder="Search commands…" style="margin-bottom: 1.2rem;">
+      <div id="commands-list"><div class="empty-state">Loading…</div></div>
+    </section>
+
   </main>
 </div>
 
 <script src="/app.js"></script>
 <script>
-const guildId = new URLSearchParams(location.search).get('id');
+const params = new URLSearchParams(location.search);
+const guildId = params.get('id');
+const guildName = params.get('name');
+const guildIcon = params.get('icon');
 let currentConfig = null;
+
+(function setGuildName() {
+  const label = guildName ? escapeHtml(guildName) : `Server ${guildId ? guildId.slice(0, 6) + '…' : ''}`;
+  document.getElementById('sidebar-guild-name').textContent = guildName ? guildName : label;
+  document.getElementById('mobile-guild-name').textContent = guildName ? guildName : label;
+})();
 
 if (!guildId) {
   document.body.innerHTML = '<div class="empty-state">No server selected. <a href="/dashboard.html">Go back</a>.</div>';
@@ -351,8 +502,33 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById(`section-${btn.dataset.section}`).classList.add('active');
+    closeDrawer();
+
+    if (btn.dataset.section === 'music') startMusicPolling();
+    else stopMusicPolling();
   });
 });
+
+// ── Mobile drawer ──────────────────────────────────────────────────────────
+const sidebar = document.getElementById('sidebar');
+const scrim = document.getElementById('sidebar-scrim');
+const menuToggle = document.getElementById('menu-toggle');
+
+function openDrawer() {
+  sidebar.classList.add('open');
+  scrim.classList.add('open');
+  menuToggle.setAttribute('aria-expanded', 'true');
+}
+function closeDrawer() {
+  sidebar.classList.remove('open');
+  scrim.classList.remove('open');
+  menuToggle.setAttribute('aria-expanded', 'false');
+}
+menuToggle.addEventListener('click', () => {
+  sidebar.classList.contains('open') ? closeDrawer() : openDrawer();
+});
+scrim.addEventListener('click', closeDrawer);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
 
 // ── Load ─────────────────────────────────────────────────────────────────────
 async function loadAll() {
@@ -375,8 +551,6 @@ async function loadAll() {
 }
 
 function populateForm(c) {
-  document.getElementById('sidebar-guild-name').textContent = `Server ${guildId.slice(0, 6)}…`;
-
   document.getElementById('welcome-enabled').checked = c.welcome.enabled;
   document.getElementById('welcome-channel').value = c.welcome.channelId ?? '';
   document.getElementById('welcome-message').value = c.welcome.message;
@@ -556,7 +730,386 @@ document.getElementById('warn-search-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') searchWarnings();
 });
 
+// ── Command reference ─────────────────────────────────────────────────────
+let allCommands = [];
+
+async function loadCommands() {
+  try {
+    allCommands = await api('/commands');
+    renderCommands(allCommands);
+  } catch (err) {
+    document.getElementById('commands-list').innerHTML =
+      `<div class="empty-state">Couldn't load the command list: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function renderCommands(commands) {
+  const list = document.getElementById('commands-list');
+  if (commands.length === 0) {
+    list.innerHTML = '<div class="empty-state">No commands match your search.</div>';
+    return;
+  }
+  const byCategory = commands.reduce((acc, c) => {
+    (acc[c.category] ??= []).push(c);
+    return acc;
+  }, {});
+  list.innerHTML = Object.entries(byCategory).map(([category, cmds]) => `
+    <div class="cmd-category">
+      <div class="cmd-category-title">${escapeHtml(category)}</div>
+      ${cmds.map(c => `
+        <div class="cmd-item">
+          <div class="cmd-name">/${escapeHtml(c.name)}</div>
+          <div class="cmd-desc">${escapeHtml(c.description)}</div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+document.getElementById('commands-search').addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  const filtered = !q
+    ? allCommands
+    : allCommands.filter(c => c.name.toLowerCase().includes(q) || c.description.toLowerCase().includes(q));
+  renderCommands(filtered);
+});
+
 loadAll();
+loadCommands();
+loadVoiceChannels();
+loadPlaylists();
+
+// ── Music: now playing + controls ───────────────────────────────────────────
+let musicPollTimer = null;
+let lastKnownPlayerState = null;
+
+function startMusicPolling() {
+  refreshNowPlaying();
+  if (musicPollTimer) return;
+  musicPollTimer = setInterval(refreshNowPlaying, 5000);
+}
+function stopMusicPolling() {
+  clearInterval(musicPollTimer);
+  musicPollTimer = null;
+}
+
+function formatMs(ms) {
+  if (!ms || ms <= 0) return '0:00';
+  const totalSeconds = Math.floor(ms / 1000);
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  const pad = n => String(n).padStart(2, '0');
+  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
+}
+
+function showMusicOffline(message) {
+  document.getElementById('music-offline-notice').style.display = '';
+  document.getElementById('music-offline-message').textContent = message;
+}
+function hideMusicOffline() {
+  document.getElementById('music-offline-notice').style.display = 'none';
+}
+
+async function loadVoiceChannels() {
+  const select = document.getElementById('voice-channel-select');
+  try {
+    const channels = await api(`/guilds/${guildId}/voice-channels`);
+    hideMusicOffline();
+    select.innerHTML = channels.length === 0
+      ? '<option value="">No joinable voice channels found</option>'
+      : channels.map(c => `<option value="${c.id}">${escapeHtml(c.name)}${c.userLimit ? ` (${c.userCount}/${c.userLimit})` : ` (${c.userCount})`}</option>`).join('');
+  } catch (err) {
+    select.innerHTML = '<option value="">Unavailable</option>';
+    showMusicOffline(err.message);
+  }
+}
+
+async function refreshNowPlaying() {
+  const card = document.getElementById('now-playing-card');
+  let player;
+  try {
+    player = await api(`/guilds/${guildId}/player`);
+    hideMusicOffline();
+  } catch (err) {
+    card.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
+    showMusicOffline(err.message);
+    return;
+  }
+
+  lastKnownPlayerState = player;
+
+  if (!player || !player.current) {
+    card.innerHTML = '<div class="empty-state">Nothing is playing right now. Use the box below to start something.</div>';
+    return;
+  }
+
+  const t = player.current;
+  const progressPct = t.durationMs ? Math.min(100, (player.position / t.durationMs) * 100) : 0;
+  const loopIcon = { off: '➡️ Off', track: '🔂 Track', queue: '🔁 Queue' }[player.repeatMode] || '➡️ Off';
+
+  card.innerHTML = `
+    <div class="np-card">
+      ${t.artworkUrl ? `<img class="np-art" src="${escapeHtml(t.artworkUrl)}" alt="">` : '<div class="np-art"></div>'}
+      <div class="np-info">
+        <div class="np-title">${escapeHtml(t.title)}</div>
+        <div class="np-author">${escapeHtml(t.author || 'Unknown artist')}</div>
+        <div class="np-progress-track"><div class="np-progress-fill" style="width:${progressPct}%"></div></div>
+        <div class="np-meta">
+          ${t.isStream ? '🔴 LIVE' : `${formatMs(player.position)} / ${formatMs(t.durationMs)}`}
+          · Requested by ${escapeHtml(t.requesterTag || 'Unknown')}
+          · Queue: ${player.queueLength}
+        </div>
+        <div class="np-controls">
+          <button class="btn btn-ghost" id="np-toggle" title="${player.paused ? 'Resume' : 'Pause'}">${player.paused ? '▶️' : '⏸️'}</button>
+          <button class="btn btn-ghost" id="np-skip" title="Skip">⏭️</button>
+          <button class="btn btn-ghost" id="np-stop" title="Stop">⏹️</button>
+          <button class="btn btn-ghost" id="np-shuffle" title="Shuffle" ${player.queueLength < 2 ? 'disabled' : ''}>🔀</button>
+          <button class="btn btn-ghost" id="np-loop" title="Cycle loop mode">${loopIcon}</button>
+        </div>
+        <div class="np-volume">
+          🔊 <input type="range" id="np-volume" min="0" max="150" value="${player.volume}">
+          <span class="np-volume-value" id="np-volume-value">${player.volume}%</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('np-toggle').addEventListener('click', () => musicAction(player.paused ? 'resume' : 'pause'));
+  document.getElementById('np-skip').addEventListener('click', () => musicAction('skip'));
+  document.getElementById('np-stop').addEventListener('click', () => musicAction('stop'));
+  document.getElementById('np-shuffle').addEventListener('click', () => musicAction('shuffle'));
+  document.getElementById('np-loop').addEventListener('click', () => {
+    const next = { off: 'track', track: 'queue', queue: 'off' }[player.repeatMode] || 'off';
+    musicSetLoop(next);
+  });
+
+  const volumeInput = document.getElementById('np-volume');
+  const volumeValue = document.getElementById('np-volume-value');
+  let volumeDebounce = null;
+  volumeInput.addEventListener('input', () => {
+    volumeValue.textContent = `${volumeInput.value}%`;
+    clearTimeout(volumeDebounce);
+    volumeDebounce = setTimeout(() => musicSetVolume(Number(volumeInput.value)), 300);
+  });
+}
+
+async function musicAction(action) {
+  try {
+    await api(`/guilds/${guildId}/player/action`, { method: 'POST', body: JSON.stringify({ action }) });
+    refreshNowPlaying();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+async function musicSetVolume(percent) {
+  try {
+    await api(`/guilds/${guildId}/player/volume`, { method: 'POST', body: JSON.stringify({ percent }) });
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+async function musicSetLoop(mode) {
+  try {
+    await api(`/guilds/${guildId}/player/loop`, { method: 'POST', body: JSON.stringify({ mode }) });
+    refreshNowPlaying();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+document.getElementById('play-query-btn').addEventListener('click', async () => {
+  const input = document.getElementById('play-query-input');
+  const query = input.value.trim();
+  if (!query) return toast('Type something to search or paste a link.', 'error');
+
+  const voiceChannelId = document.getElementById('voice-channel-select').value;
+  if (!lastKnownPlayerState?.connected && !voiceChannelId) {
+    return toast('Pick a voice channel first.', 'error');
+  }
+
+  try {
+    const result = await api(`/guilds/${guildId}/player/play`, {
+      method: 'POST',
+      body: JSON.stringify({ query, voiceChannelId: voiceChannelId || undefined }),
+    });
+    toast(result.playlistName ? `Queued ${result.added} track(s) from "${result.playlistName}".` : `Queued ${result.added} track(s).`);
+    input.value = '';
+    refreshNowPlaying();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+});
+document.getElementById('play-query-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('play-query-btn').click();
+});
+
+// ── Playlists ────────────────────────────────────────────────────────────
+async function loadPlaylists() {
+  const list = document.getElementById('playlists-list');
+  try {
+    const items = await api(`/guilds/${guildId}/playlists`);
+    if (items.length === 0) {
+      list.innerHTML = '<div class="empty-state">No playlists yet — create one, or save the current queue once something\'s playing.</div>';
+      return;
+    }
+    list.innerHTML = items.map(p => `
+      <div class="playlist-item" data-playlist-id="${p.id}">
+        <div class="playlist-header" data-toggle="${p.id}">
+          <div>
+            <div class="playlist-name">${escapeHtml(p.name)}</div>
+            <div class="playlist-meta">${p.trackCount} track(s) · added by ${escapeHtml(p.createdBy)}</div>
+          </div>
+          <div class="playlist-actions">
+            <button class="btn btn-primary btn-sm" data-play="${p.id}">▶️ Play</button>
+            <button class="btn btn-ghost btn-sm" data-save-queue="${p.id}">💾 Save queue</button>
+            <button class="btn btn-danger btn-sm" data-delete="${p.id}">🗑️</button>
+          </div>
+        </div>
+        <div class="playlist-tracks" id="playlist-tracks-${p.id}"></div>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('[data-toggle]').forEach(el => {
+      el.addEventListener('click', () => togglePlaylist(Number(el.dataset.toggle)));
+    });
+    list.querySelectorAll('[data-play]').forEach(el => {
+      el.addEventListener('click', e => { e.stopPropagation(); playPlaylist(Number(el.dataset.play)); });
+    });
+    list.querySelectorAll('[data-save-queue]').forEach(el => {
+      el.addEventListener('click', e => { e.stopPropagation(); saveQueueToPlaylist(Number(el.dataset.saveQueue)); });
+    });
+    list.querySelectorAll('[data-delete]').forEach(el => {
+      el.addEventListener('click', e => { e.stopPropagation(); deletePlaylistConfirm(Number(el.dataset.delete)); });
+    });
+  } catch (err) {
+    list.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+document.getElementById('new-playlist-btn').addEventListener('click', async () => {
+  const name = prompt('Playlist name?');
+  if (!name) return;
+  try {
+    await api(`/guilds/${guildId}/playlists`, { method: 'POST', body: JSON.stringify({ name }) });
+    toast('Playlist created.');
+    loadPlaylists();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+});
+
+async function togglePlaylist(id) {
+  const container = document.getElementById(`playlist-tracks-${id}`);
+  const isOpen = container.classList.contains('open');
+  document.querySelectorAll('.playlist-tracks.open').forEach(el => el.classList.remove('open'));
+  if (isOpen) return;
+
+  container.classList.add('open');
+  container.innerHTML = '<div class="empty-state">Loading…</div>';
+  try {
+    const playlist = await api(`/guilds/${guildId}/playlists/${id}`);
+    renderPlaylistTracks(id, playlist.tracks);
+  } catch (err) {
+    container.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function renderPlaylistTracks(playlistId, tracks) {
+  const container = document.getElementById(`playlist-tracks-${playlistId}`);
+  const rows = tracks.length === 0
+    ? '<div class="empty-state">No tracks yet — add one below.</div>'
+    : tracks.map(t => `
+        <div class="pl-track-row">
+          <div>
+            <div class="pl-track-title">${escapeHtml(t.title)}</div>
+            ${t.author ? `<div class="pl-track-author">${escapeHtml(t.author)}</div>` : ''}
+          </div>
+          <button class="btn btn-ghost btn-sm" data-remove-track="${t.id}">✕</button>
+        </div>
+      `).join('');
+
+  container.innerHTML = `
+    ${rows}
+    <div class="pl-add-track">
+      <input type="text" placeholder="Add a track — search or paste a link…" id="pl-add-input-${playlistId}">
+      <button class="btn btn-ghost btn-sm" id="pl-add-btn-${playlistId}">➕ Add</button>
+    </div>
+  `;
+
+  container.querySelectorAll('[data-remove-track]').forEach(el => {
+    el.addEventListener('click', () => removeTrackFromPlaylist(playlistId, Number(el.dataset.removeTrack)));
+  });
+  document.getElementById(`pl-add-btn-${playlistId}`).addEventListener('click', () => addTrackToPlaylist(playlistId));
+  document.getElementById(`pl-add-input-${playlistId}`).addEventListener('keydown', e => {
+    if (e.key === 'Enter') addTrackToPlaylist(playlistId);
+  });
+}
+
+async function addTrackToPlaylist(playlistId) {
+  const input = document.getElementById(`pl-add-input-${playlistId}`);
+  const query = input.value.trim();
+  if (!query) return;
+  try {
+    await api(`/guilds/${guildId}/playlists/${playlistId}/tracks`, { method: 'POST', body: JSON.stringify({ query }) });
+    input.value = '';
+    toast('Track added.');
+    const playlist = await api(`/guilds/${guildId}/playlists/${playlistId}`);
+    renderPlaylistTracks(playlistId, playlist.tracks);
+    loadPlaylists();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+async function removeTrackFromPlaylist(playlistId, trackId) {
+  try {
+    await api(`/guilds/${guildId}/playlists/${playlistId}/tracks/${trackId}`, { method: 'DELETE' });
+    const playlist = await api(`/guilds/${guildId}/playlists/${playlistId}`);
+    renderPlaylistTracks(playlistId, playlist.tracks);
+    loadPlaylists();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+async function deletePlaylistConfirm(id) {
+  if (!confirm('Delete this playlist? This can\'t be undone.')) return;
+  try {
+    await api(`/guilds/${guildId}/playlists/${id}`, { method: 'DELETE' });
+    toast('Playlist deleted.');
+    loadPlaylists();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+async function playPlaylist(id) {
+  const voiceChannelId = document.getElementById('voice-channel-select').value;
+  if (!lastKnownPlayerState?.connected && !voiceChannelId) {
+    return toast('Pick a voice channel in the "Play something" box first.', 'error');
+  }
+  try {
+    const result = await api(`/guilds/${guildId}/playlists/${id}/play`, {
+      method: 'POST',
+      body: JSON.stringify({ voiceChannelId: voiceChannelId || undefined }),
+    });
+    toast(`Queued ${result.added} track(s)${result.failed ? `, ${result.failed} failed to resolve` : ''}.`);
+    refreshNowPlaying();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+async function saveQueueToPlaylist(id) {
+  try {
+    const result = await api(`/guilds/${guildId}/playlists/${id}/save-queue`, { method: 'POST' });
+    toast(`Saved ${result.added} track(s) to the playlist.`);
+    loadPlaylists();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
 </script>
 
 </body>

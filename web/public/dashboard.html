@@ -48,7 +48,7 @@
 <main>
   <h1>Your servers</h1>
   <p>Servers where you have <b>Manage Server</b> permission. Pick one to configure, or add the bot to a new one.</p>
-  <div id="guild-grid" class="guild-grid"></div>
+  <div id="guild-grid" class="guild-grid"><div class="spinner" style="grid-column: 1/-1;"></div></div>
 </main>
 
 <script src="/app.js"></script>
@@ -77,7 +77,11 @@
     for (const g of me.guilds) {
       const card = document.createElement(g.hasBot ? 'a' : 'div');
       card.className = `guild-card ${g.hasBot ? 'active' : 'inactive'}`;
-      if (g.hasBot) card.href = `/guild.html?id=${g.id}`;
+      if (g.hasBot) {
+        const params = new URLSearchParams({ id: g.id, name: g.name });
+        if (g.icon) params.set('icon', g.icon);
+        card.href = `/guild.html?${params.toString()}`;
+      }
 
       card.innerHTML = `
         <div class="guild-icon">${g.icon ? `<img src="${escapeHtml(g.icon)}" alt="">` : escapeHtml(g.name.slice(0, 1))}</div>
